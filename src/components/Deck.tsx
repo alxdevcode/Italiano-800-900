@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -400,196 +399,153 @@ const deckStyles = `
     margin: 0 0 14px;
   }
 
-  /* =======================================================
-     CONTENT SLIDES
-  ======================================================= */
 
+/* SLIDE INTERNE — STILE EDITORIALE IMMERSIVO */
+
+.literary-content {
+  position: relative;
+  display: grid;
+  grid-template-columns: 50% 50%;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: #100b08;
+}
+
+.literary-text-column {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 28px 5% 35px 10%;
+  background: linear-gradient(
+    90deg,
+    #100b08 0%,
+    #100b08 75%,
+    rgba(16, 11, 8, 0.94) 100%
+  );
+}
+
+.literary-heading {
+  flex-shrink: 0;
+  margin-bottom: 35px;
+}
+
+.literary-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+.literary-media-column {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.literary-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: auto;
+  object-fit: cover;
+  object-position: center;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.literary-media-column::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(16, 11, 8, 0.35),
+    transparent 35%
+  );
+}
+
+.literary-points {
+  position: absolute;
+  z-index: 2;
+  left: 5%;
+  right: 8%;
+  bottom: 7%;
+  width: auto;
+  max-height: 42%;
+  overflow-y: auto;
+  padding: 22px 28px;
+  background: rgba(13, 9, 7, 0.88);
+  backdrop-filter: blur(12px);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.literary-quote {
+  position: absolute;
+  z-index: 3;
+  bottom: 5%;
+  left: 5%;
+  right: 8%;
+  margin: 0;
+  padding: 18px 24px;
+  background: rgba(13, 9, 7, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
   .literary-content {
-    display: grid;
-
-    grid-template-columns:
-      minmax(0, 1.08fr)
-      minmax(0, 1fr);
-
-    gap: clamp(30px, 4vw, 76px);
-
-    width: 100%;
-    height: 100%;
-
-    padding: clamp(20px, 3vh, 36px) 5%;
-
-    overflow: hidden;
-    background: var(--background);
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 55%) minmax(0, 45%);
   }
 
   .literary-text-column {
-    display: flex;
-    flex-direction: column;
-
-    min-width: 0;
-    min-height: 0;
+    padding: 20px 6%;
   }
 
   .literary-heading {
-    flex-shrink: 0;
-    margin-bottom: 22px;
+    margin-bottom: 16px;
   }
-
-  .literary-title {
-    margin: 12px 0 0;
-
-    font-family: var(--font-serif);
-    font-size: clamp(37px, 3.7vw, 68px);
-    font-weight: 400;
-    line-height: 1.05;
-    letter-spacing: -.025em;
-  }
-
-  .literary-subtitle {
-    margin: 10px 0 0;
-
-    font-family: var(--font-serif);
-    font-size: clamp(19px, 1.6vw, 28px);
-    font-style: italic;
-
-    color: var(--primary);
-  }
-
-  .literary-body {
-    flex: 1 1 auto;
-
-    min-height: 0;
-    overflow-y: auto;
-
-    padding-right: 12px;
-
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-
-  .literary-body p {
-    margin: 0 0 19px;
-
-    font-size: clamp(13px, .95vw, 16px);
-    line-height: 1.75;
-
-    color: var(--muted-foreground);
-  }
-
-  .literary-body p:first-child {
-    color: var(--foreground);
-  }
-
-  .literary-body p:first-child::first-letter {
-    float: left;
-
-    padding-right: .08em;
-
-    font-family: var(--font-serif);
-    font-size: 3.3em;
-    line-height: .85;
-
-    color: var(--primary);
-  }
-
-  /* =======================================================
-     MEDIA COLUMN - REAL 16:9
-  ======================================================= */
 
   .literary-media-column {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    gap: 22px;
-
-    min-width: 0;
-    min-height: 0;
-
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    height: 100%;
+    max-height: none;
   }
 
   .literary-image {
-    display: block;
-
     width: 100%;
-    height: auto;
-
-    aspect-ratio: 16 / 9;
-    flex: 0 0 auto;
-
+    height: 100%;
     object-fit: cover;
-    object-position: center;
-
-    border: 0 !important;
-    border-radius: 0 !important;
-    outline: 0 !important;
-    box-shadow: none !important;
-
-    background: transparent;
   }
 
   .literary-points {
-    width: 100%;
-    flex: 0 0 auto;
-
-    padding: 0;
-    margin: 0;
-
-    background: transparent;
-    border: none;
-    box-shadow: none;
+    left: 4%;
+    right: 4%;
+    bottom: 5%;
+    padding: 14px;
+    max-height: 65%;
   }
+}
 
-  .literary-points-label {
-    margin: 0 0 10px;
-
-    font-size: 10px;
-    letter-spacing: .24em;
-    text-transform: uppercase;
-
-    color: var(--primary);
-  }
-
-  .literary-point {
-    display: flex;
-    align-items: baseline;
-
-    gap: 14px;
-    padding: 8px 0;
-
-    font-size: clamp(12px, .86vw, 14px);
-    line-height: 1.55;
-  }
-
-  .literary-point-number {
-    flex-shrink: 0;
-
-    font-family: var(--font-serif);
-    color: var(--primary);
-  }
-
-  .literary-quote {
-    margin: 10px 0 0;
-    padding-left: 18px;
-
-    border-left: 2px solid var(--primary);
-  }
-
-  .literary-quote-text {
-    font-family: var(--font-serif);
-    font-size: clamp(19px, 1.7vw, 28px);
-    font-style: italic;
-    line-height: 1.3;
-  }
-
-  .literary-quote-author {
-    margin-top: 12px;
-    font-size: 12px;
-    color: var(--muted-foreground);
-  }
 
   /* =======================================================
      INDEX
