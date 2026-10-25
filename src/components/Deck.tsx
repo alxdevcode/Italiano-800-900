@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -767,7 +766,10 @@ export function Deck({ index }: { index: number }) {
           go(current + (event.deltaY > 0 ? 1 : -1));
         }}
       >
-        <header className="deck-header">
+        <header
+  className="deck-header"
+  style={{ background: "#b91c1c" }}
+>
           <button
             className="deck-logo"
             type="button"
