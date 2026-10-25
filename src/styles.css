@@ -88,3 +88,29 @@
 
 @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
 @keyframes reveal-img { to { opacity: 1; transform: scale(1); } }
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+img {
+  max-width: 100%;
+}
