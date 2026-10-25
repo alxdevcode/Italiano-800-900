@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -678,6 +677,62 @@ const deckStyles = `
       margin-bottom: 12px;
     }
   }
+  
+/* SFUMATURA TRA TESTO E IMMAGINE */
+.literary-text-column {
+  background: #100b08;
+}
+
+.literary-media-column::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    #100b08 0%,
+    rgba(16, 11, 8, 0.92) 5%,
+    rgba(16, 11, 8, 0.55) 18%,
+    rgba(16, 11, 8, 0.12) 42%,
+    transparent 70%
+  );
+}
+
+/* CONCETTI SENZA RIQUADRO MARRONE */
+.literary-points {
+  position: absolute;
+  z-index: 3;
+  left: 6%;
+  right: 6%;
+  bottom: 12%;
+
+  width: auto;
+  max-height: 35%;
+  overflow-y: auto;
+
+  padding: 0;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+}
+
+.literary-points-label {
+  color: #e4aa65;
+  margin-bottom: 14px;
+}
+
+.literary-point {
+  color: #fff5e8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  text-shadow: 0 2px 6px #000;
+}
 `;
 
 function Cover({ page }: { page: Page }) {
