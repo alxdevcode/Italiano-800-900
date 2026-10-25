@@ -26,7 +26,7 @@ const SPLIT_TITLES = new Set([
   "Mastro-don Gesualdo",
 ]);
 
-function makePages(): Page[] {
+function createPages(): Page[] {
   return slides.flatMap((slide, source) => {
     if (!SPLIT_TITLES.has(slide.title)) {
       return [{
@@ -37,11 +37,11 @@ function makePages(): Page[] {
         paragraphs: slide.body,
         points: slide.points,
         quote: slide.quote,
-        cover: !!slide.cover,
+        cover: Boolean(slide.cover),
       }];
     }
 
-    const cut = Math.ceil(slide.body.length / 2);
+    const middle = Math.ceil(slide.body.length / 2);
 
     return [
       {
@@ -49,7 +49,7 @@ function makePages(): Page[] {
         source,
         part: 0,
         count: 2,
-        paragraphs: slide.body.slice(0, cut),
+        paragraphs: slide.body.slice(0, middle),
         cover: false,
       },
       {
@@ -57,7 +57,7 @@ function makePages(): Page[] {
         source,
         part: 1,
         count: 2,
-        paragraphs: slide.body.slice(cut),
+        paragraphs: slide.body.slice(middle),
         points: slide.points,
         quote: slide.quote,
         cover: false,
@@ -66,176 +66,483 @@ function makePages(): Page[] {
   });
 }
 
-function PageView({ page }: { page: Page }) {
-  const s = page.slide;
-  const hasImage = !!s.image && page.part === 0;
+const styles = `
+  .literary-deck {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+    background: var(--background);
+    color: var(--foreground);
+    z-index: 100;
+  }
 
-  // COPERTINA CINEMATOGRAFICA
-  if (page.cover) {
-    return (
-      <section className="relative h-full w-full overflow-hidden">
-        {s.image && (
-          <img
-            src={s.image}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
+  .literary-deck *,
+  .literary-deck *::before,
+  .literary-deck *::after {
+    box-sizing: border-box;
+  }
+
+  .literary-header {
+    position: relative;
+    z-index: 20;
+    height: 62px;
+    flex: 0 0 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4.5%;
+    background: var(--background);
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .literary-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+    border: 0 !important;
+  }
+
+  .literary-footer {
+    position: relative;
+    z-index: 20;
+    height: 58px;
+    flex: 0 0 58px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 4.5%;
+    background: var(--background);
+    border: 0 !important;
+  }
+
+  .literary-cover {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  .literary-cover-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .literary-cover-shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(13,10,8,.91) 0%,
+        rgba(13,10,8,.65) 36%,
+        rgba(13,10,8,.15) 85%
+      ),
+      linear-gradient(
+        0deg,
+        rgba(13,10,8,.25),
+        transparent 45%
+      );
+  }
+
+  .literary-cover-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    width: min(100%, 980px);
+    padding: 32px 5%;
+  }
+
+  .literary-content {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  .literary-layout {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    gap: clamp(26px, 4vw, 76px);
+    width: 100%;
+    height: 100%;
+    padding: clamp(20px, 3vh, 34px) 5%;
+  }
+
+  .literary-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .literary-heading {
+    flex-shrink: 0;
+    margin-bottom: clamp(12px, 2vh, 24px);
+  }
+
+  .literary-body {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    padding-right: 8px;
+    mask-image: linear-gradient(
+      to bottom,
+      black 0%,
+      black 94%,
+      transparent 100%
+    );
+  }
+
+  .literary-body::-webkit-scrollbar,
+  .literary-side-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .literary-body p {
+    margin: 0 0 1em;
+    font-size: clamp(13px, .96vw, 16px);
+    line-height: 1.67;
+    color: var(--muted-foreground);
+  }
+
+  .literary-body p:first-child {
+    color: var(--foreground);
+  }
+
+  .literary-side {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  .literary-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 54%;
+    min-height: 0;
+    flex: 1 1 auto;
+    object-fit: cover;
+    object-position: center;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background: transparent !important;
+  }
+
+  .literary-side-scroll {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .literary-point {
+    display: flex;
+    align-items: baseline;
+    gap: 13px;
+    padding: 7px 0;
+    font-size: clamp(12px, .85vw, 14px);
+    line-height: 1.5;
+  }
+
+  .literary-quote {
+    margin-top: 14px;
+    padding-left: 16px;
+    border-left: 2px solid var(--primary);
+  }
+
+  .literary-progress {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .literary-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width .45s ease;
+  }
+
+  .literary-icon-button {
+    width: 39px;
+    height: 39px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    transition: background .2s ease;
+  }
+
+  .literary-icon-button:hover:not(:disabled) {
+    background: var(--secondary);
+  }
+
+  .literary-icon-button:disabled {
+    opacity: .25;
+    cursor: not-allowed;
+  }
+
+  .literary-index {
+    position: absolute;
+    z-index: 50;
+    inset: 0;
+    overflow-y: auto;
+    background: var(--popover);
+    padding: 90px 6% 45px;
+  }
+
+  @media (min-width: 1100px) {
+    .literary-layout.no-image {
+      grid-template-columns: minmax(0, 1fr) minmax(0, .85fr);
+    }
+
+    .literary-layout.no-image .literary-main {
+      max-width: 850px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .literary-layout {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 14px;
+      padding: 18px 5%;
+    }
+
+    .literary-side {
+      max-height: 32vh;
+    }
+
+    .literary-image {
+      max-height: 19vh;
+      flex: 0 0 auto;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+    }
+
+    .literary-side-scroll {
+      max-height: 11vh;
+    }
+
+    .literary-body p {
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .literary-cover-content {
+      padding: 25px 6%;
+    }
+  }
+
+  @media (max-height: 650px) and (min-width: 901px) {
+    .literary-layout {
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .literary-heading {
+      margin-bottom: 8px;
+    }
+
+    .literary-image {
+      max-height: 43%;
+    }
+
+    .literary-header {
+      height: 50px;
+      flex-basis: 50px;
+    }
+
+    .literary-footer {
+      height: 48px;
+      flex-basis: 48px;
+    }
+  }
+`;
+
+function Cover({ page }: { page: Page }) {
+  const slide = page.slide;
+
+  return (
+    <section className="literary-cover">
+      {slide.image && (
+        <img
+          src={slide.image}
+          alt={slide.title}
+          className="literary-cover-image"
+        />
+      )}
+
+      <div className="literary-cover-shade" />
+
+      <div className="literary-cover-content">
+        <p className="kicker">
+          {slide.chapter}
+        </p>
+
+        <h1 className="mt-6 max-w-[950px] font-serif text-[clamp(3.2rem,6vw,7rem)] leading-[.99] tracking-tight text-foreground">
+          {slide.title}
+        </h1>
+
+        {slide.subtitle && (
+          <p className="mt-7 font-serif text-[clamp(1.3rem,2vw,2.3rem)] italic text-primary">
+            {slide.subtitle}
+          </p>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-black/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+        <div className="mt-7 max-w-[650px] space-y-4">
+          {page.paragraphs.map((text, i) => (
+            <p
+              key={i}
+              className="text-[clamp(.88rem,1.1vw,1.1rem)] leading-relaxed text-foreground/85"
+            >
+              {text}
+            </p>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        <div className="relative z-10 flex h-full w-full flex-col justify-center px-[5vw]">
-          <div className="max-w-[950px]">
-            <p className="kicker">{s.chapter}</p>
+function ContentPage({ page }: { page: Page }) {
+  const slide = page.slide;
+  const showImage = Boolean(slide.image && page.part === 0);
+  const showPoints = Boolean(page.points?.length);
+  const showQuote = Boolean(page.quote);
 
-            <h1 className="mt-6 font-serif text-[clamp(3rem,5.8vw,6.5rem)] leading-[1.05] tracking-tight text-white">
-              {s.title}
-            </h1>
+  return (
+    <section className="literary-content">
+      <div
+        className={`literary-layout ${
+          showImage ? "" : "no-image"
+        }`}
+      >
+        <div className="literary-main">
+          <div className="literary-heading">
+            <p className="kicker">
+              {String(page.source + 1).padStart(2, "0")}
+              {" · "}
+              {slide.chapter}
+              {page.count > 1 &&
+                ` · Parte ${page.part + 1}/${page.count}`}
+            </p>
 
-            {s.subtitle && (
-              <p className="mt-7 font-serif text-[clamp(1.3rem,2vw,2.2rem)] italic text-primary">
-                {s.subtitle}
+            <h2 className="mt-3 font-serif text-[clamp(2.1rem,3.6vw,4.4rem)] leading-[1.05] tracking-tight">
+              {slide.title}
+            </h2>
+
+            {slide.subtitle && (
+              <p className="mt-2 font-serif text-[clamp(1.05rem,1.5vw,1.6rem)] italic text-primary">
+                {slide.subtitle}
               </p>
             )}
+          </div>
 
-            {page.paragraphs.map((paragraph, i) => (
+          <div className="literary-body">
+            {page.paragraphs.map((text, i) => (
               <p
                 key={i}
-                className="mt-6 max-w-[650px] text-[clamp(0.9rem,1.1vw,1.1rem)] leading-relaxed text-white/85"
+                className={i === 0 ? "dropcap" : ""}
               >
-                {paragraph}
+                {text}
               </p>
             ))}
           </div>
         </div>
-      </section>
-    );
-  }
 
-  return (
-    <section className="relative h-full w-full overflow-hidden bg-background">
-
-      {/* IMMAGINE PANORAMICA SULLA DESTRA */}
-      {hasImage && (
-        <div className="absolute inset-y-0 right-0 w-[58%] overflow-hidden">
-          <img
-            src={s.image}
-            alt={s.title}
-            className="h-full w-full object-cover object-center"
-          />
-
-          {/* Sfumatura che integra l'immagine nello sfondo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/65 via-[25%] to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-transparent to-background/20" />
-        </div>
-      )}
-
-      {/* CONTENUTO */}
-      <div className="relative z-10 flex h-full w-full flex-col px-[5vw] py-5">
-
-        {/* TITOLO */}
-        <div className="shrink-0">
-          <p className="kicker">
-            {String(page.source + 1).padStart(2, "0")} · {s.chapter}
-            {page.count > 1
-              ? ` · Parte ${page.part + 1}/${page.count}`
-              : ""}
-          </p>
-
-          <h2 className="mt-3 max-w-[1100px] font-serif text-[clamp(2.2rem,3.7vw,4.2rem)] leading-[1.08] tracking-tight text-foreground">
-            {s.title}
-          </h2>
-
-          {s.subtitle && (
-            <p className="mt-2 font-serif text-[clamp(1rem,1.5vw,1.5rem)] italic text-primary">
-              {s.subtitle}
-            </p>
+        <aside className="literary-side">
+          {showImage && (
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="literary-image"
+            />
           )}
-        </div>
 
-        {/* CORPO DELLA SLIDE */}
-        <div
-          className={`grid min-h-0 flex-1 gap-8 pt-6 ${
-            hasImage
-              ? "lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]"
-              : "lg:grid-cols-2"
-          }`}
-        >
-          {/* TESTO PRINCIPALE */}
-          <div className="flex min-h-0 flex-col justify-center">
-            <div className="space-y-4">
-              {page.paragraphs.map((paragraph, i) => (
-                <p
-                  key={i}
-                  className={`max-w-[850px] text-[clamp(0.84rem,1vw,1.04rem)] leading-[1.65] ${
-                    i === 0
-                      ? "dropcap text-foreground"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  {paragraph}
-                </p>
-              ))}
+          {(showPoints || showQuote) && (
+            <div className="literary-side-scroll">
+              {showPoints && (
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-[.24em] text-primary">
+                    Concetti fondamentali
+                  </p>
+
+                  {page.points!.map((point, i) => (
+                    <div
+                      className="literary-point"
+                      key={i}
+                    >
+                      <span className="shrink-0 font-serif text-primary">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+
+                      <span className="text-foreground/90">
+                        {point}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showQuote && (
+                <blockquote className="literary-quote">
+                  <p className="font-serif text-[clamp(1.1rem,1.5vw,1.7rem)] italic leading-snug">
+                    «{page.quote!.text}»
+                  </p>
+
+                  <footer className="mt-3 text-xs tracking-wide text-muted-foreground">
+                    {page.quote!.by}
+                  </footer>
+                </blockquote>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* COLONNA DESTRA */}
-          <aside className="flex min-h-0 flex-col justify-end pb-4">
-
-            {/* PUNTI CHIAVE */}
-            {page.points && page.points.length > 0 && (
-              <div
-                className={`w-full ${
-                  hasImage
-                    ? "rounded-sm bg-background/85 p-5 backdrop-blur-md"
-                    : "border-t border-border/40"
-                }`}
-              >
-                <p className="mb-3 text-[10px] uppercase tracking-[0.25em] text-primary">
-                  Concetti fondamentali
-                </p>
-
-                {page.points.map((point, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-4 border-b border-border/30 py-2.5 last:border-0"
-                  >
-                    <span className="font-serif text-sm text-primary">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-
-                    <span className="text-[clamp(0.82rem,0.95vw,0.98rem)] leading-snug text-foreground">
-                      {point}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* CITAZIONE */}
-            {page.quote && (
-              <blockquote className="mt-5 border-l-2 border-primary bg-background/80 p-5 backdrop-blur-md">
-                <p className="font-serif text-[clamp(1.1rem,1.5vw,1.6rem)] italic leading-snug">
-                  «{page.quote.text}»
-                </p>
-
-                <footer className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">
-                  {page.quote.by}
-                </footer>
-              </blockquote>
-            )}
-
-            {/* ELEMENTO EDITORIALE PER SLIDE SENZA IMMAGINE */}
-            {!hasImage && !page.points && !page.quote && (
-              <div className="hidden border-l-2 border-primary/40 pl-8 lg:block">
-                <p className="font-serif text-[clamp(2rem,3vw,4rem)] italic leading-tight text-primary/50">
-                  {s.subtitle || s.chapter}
-                </p>
-              </div>
-            )}
-          </aside>
-        </div>
+          {!showImage && !showPoints && !showQuote && (
+            <div className="flex h-full items-center justify-center">
+              <p className="max-w-md font-serif text-[clamp(2.5rem,4vw,5rem)] italic leading-tight text-primary/50">
+                {slide.subtitle || slide.chapter}
+              </p>
+            </div>
+          )}
+        </aside>
       </div>
     </section>
   );
@@ -244,225 +551,267 @@ function PageView({ page }: { page: Page }) {
 export function Deck({ index }: { index: number }) {
   const navigate = useNavigate();
 
-  const pages = useMemo(makePages, []);
+  const pages = useMemo(() => createPages(), []);
   const [menu, setMenu] = useState(false);
 
-  const touch = useRef<number | null>(null);
+  const touchStart = useRef<number | null>(null);
   const wheelLock = useRef(0);
 
   const total = pages.length;
-  const cur = Math.min(Math.max(index, 0), total - 1);
-  const page = pages[cur]!;
+  const current = Math.max(0, Math.min(index, total - 1));
+  const page = pages[current];
 
   const go = useCallback(
-    (n: number) => {
-      const target = Math.min(Math.max(n, 0), total - 1);
+    (next: number) => {
+      const target = Math.max(0, Math.min(next, total - 1));
 
-      if (target !== cur) {
-        navigate({
-          to: "/",
-          search: { s: target },
-          replace: true,
-        });
-      }
+      if (target === current) return;
+
+      navigate({
+        to: "/",
+        search: { s: target },
+        replace: true,
+      });
     },
-    [cur, navigate, total]
+    [current, navigate, total]
   );
 
   useEffect(() => {
-    document.title = `${cur + 1}/${total} — ${page.slide.title}`;
-  }, [cur, total, page.slide.title]);
+    document.title =
+      `${current + 1}/${total} — ${page.slide.title}`;
+  }, [current, total, page.slide.title]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
         setMenu(false);
         return;
       }
 
-      if (e.key.toLowerCase() === "m") {
-        setMenu((v) => !v);
+      if (event.key.toLowerCase() === "m") {
+        setMenu((previous) => !previous);
         return;
       }
 
       if (menu) return;
 
+      const target = event.target;
+
       if (
-        ["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA")
       ) {
-        e.preventDefault();
-        go(cur + 1);
+        return;
       }
 
       if (
-        ["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)
+        ["ArrowRight", "PageDown", " "].includes(event.key)
       ) {
-        e.preventDefault();
-        go(cur - 1);
+        event.preventDefault();
+        go(current + 1);
       }
 
-      if (e.key === "Home") go(0);
-      if (e.key === "End") go(total - 1);
+      if (
+        ["ArrowLeft", "PageUp"].includes(event.key)
+      ) {
+        event.preventDefault();
+        go(current - 1);
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        go(0);
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        go(total - 1);
+      }
     };
 
-    window.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKeyDown);
 
-    return () => window.removeEventListener("keydown", onKey);
-  }, [cur, go, menu, total]);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [current, go, menu, total]);
 
   return (
-    <div
-      className="grain fixed inset-0 flex flex-col overflow-hidden border-0 bg-background text-foreground"
-      onTouchStart={(e) => {
-        touch.current = e.touches[0]?.clientX ?? null;
-      }}
-      onTouchEnd={(e) => {
-        if (touch.current === null || menu) return;
+    <>
+      <style>{styles}</style>
 
-        const dx =
-          (e.changedTouches[0]?.clientX ?? touch.current) -
-          touch.current;
+      <div
+        className="literary-deck"
+        onTouchStart={(event) => {
+          touchStart.current =
+            event.touches[0]?.clientX ?? null;
+        }}
+        onTouchEnd={(event) => {
+          if (menu || touchStart.current === null) return;
 
-        if (Math.abs(dx) > 55) {
-          go(cur + (dx < 0 ? 1 : -1));
-        }
+          const end = event.changedTouches[0]?.clientX;
+          if (end === undefined) return;
 
-        touch.current = null;
-      }}
-      onWheel={(e) => {
-        if (menu || Math.abs(e.deltaY) < 15) return;
+          const delta = end - touchStart.current;
 
-        const now = Date.now();
+          if (Math.abs(delta) > 65) {
+            go(current + (delta < 0 ? 1 : -1));
+          }
 
-        if (now - wheelLock.current < 750) return;
+          touchStart.current = null;
+        }}
+        onWheel={(event) => {
+          if (menu) return;
 
-        wheelLock.current = now;
-        go(cur + (e.deltaY > 0 ? 1 : -1));
-      }}
-    >
-      {/* HEADER SENZA BORDI */}
-      <header className="relative z-50 flex h-[64px] shrink-0 items-center justify-between border-0 bg-background px-[5vw]">
-        <button
-          onClick={() => go(0)}
-          className="font-serif text-2xl tracking-tight"
-        >
-          Il Vero
-        </button>
+          // Non cambiare slide mentre si legge un testo lungo.
+          const target = event.target;
+          if (
+            target instanceof Element &&
+            target.closest(
+              ".literary-body, .literary-side-scroll"
+            )
+          ) {
+            return;
+          }
 
-        <button
-          onClick={() => setMenu((v) => !v)}
-          className="rounded-full border border-border/40 px-5 py-2 text-sm transition hover:bg-secondary"
-        >
-          {menu ? "Chiudi" : "Indice"}
-        </button>
-      </header>
+          if (Math.abs(event.deltaY) < 25) return;
 
-      {/* PRESENTAZIONE */}
-      <main
-        key={cur}
-        className="min-h-0 flex-1 overflow-hidden border-0 animate-in fade-in duration-500"
+          const now = Date.now();
+          if (now - wheelLock.current < 850) return;
+
+          wheelLock.current = now;
+          go(current + (event.deltaY > 0 ? 1 : -1));
+        }}
       >
-        <PageView page={page} />
-      </main>
+        <header className="literary-header">
+          <button
+            type="button"
+            onClick={() => go(0)}
+            className="font-serif text-2xl tracking-tight"
+          >
+            Il Vero
+          </button>
 
-      {/* NAVIGAZIONE INFERIORE */}
-      <footer className="relative z-40 flex h-[64px] shrink-0 items-center gap-5 border-0 bg-background px-[5vw]">
-        <span className="font-serif text-lg tabular-nums">
-          {String(cur + 1).padStart(2, "0")}
-          <span className="text-muted-foreground">
-            {" / "}
-            {total}
-          </span>
-        </span>
+          <button
+            type="button"
+            onClick={() => setMenu((previous) => !previous)}
+            className="rounded-full border border-border/30 px-5 py-2 text-xs transition hover:bg-secondary"
+          >
+            {menu ? "Chiudi" : "Indice"}
+          </button>
+        </header>
 
-        <div className="h-px flex-1 bg-border/40">
+        <main className="literary-stage">
           <div
-            className="h-px bg-primary transition-all duration-500"
-            style={{
-              width: `${((cur + 1) / total) * 100}%`,
-            }}
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            aria-label="Precedente"
-            onClick={() => go(cur - 1)}
-            disabled={cur === 0}
-            className="grid h-10 w-10 place-items-center rounded-full border border-border/40 transition hover:bg-primary hover:text-primary-foreground disabled:opacity-30"
+            key={current}
+            className="h-full w-full animate-in fade-in duration-500"
           >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
+            {page.cover ? (
+              <Cover page={page} />
+            ) : (
+              <ContentPage page={page} />
+            )}
+          </div>
+        </main>
 
-          <button
-            aria-label="Successiva"
-            onClick={() => go(cur + 1)}
-            disabled={cur === total - 1}
-            className="grid h-10 w-10 place-items-center rounded-full border border-border/40 transition hover:bg-primary hover:text-primary-foreground disabled:opacity-30"
-          >
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-      </footer>
+        <footer className="literary-footer">
+          <span className="shrink-0 font-serif text-lg tabular-nums">
+            {String(current + 1).padStart(2, "0")}
+            <span className="text-muted-foreground">
+              {" / "}
+              {total}
+            </span>
+          </span>
 
-      {/* INDICE */}
-      <nav
-        className={`fixed inset-0 z-40 overflow-y-auto bg-popover transition-opacity duration-500 ${
-          menu
-            ? "visible opacity-100"
-            : "invisible pointer-events-none opacity-0"
-        }`}
-      >
-        <div className="mx-auto max-w-6xl px-6 pb-20 pt-24 md:px-14">
-          <div className="mb-10 flex items-center justify-between">
-            <h2 className="font-serif text-5xl">
-              Indice
-            </h2>
-
-            <button
-              onClick={() => setMenu(false)}
-              aria-label="Chiudi indice"
-            >
-              <X className="h-6 w-6" />
-            </button>
+          <div className="literary-progress">
+            <div
+              className="literary-progress-fill"
+              style={{
+                width: `${((current + 1) / total) * 100}%`,
+              }}
+            />
           </div>
 
-          <ol className="grid gap-x-12 md:grid-cols-2">
-            {slides.map((s, k) => {
-              const p = pages.findIndex(
-                (x) => x.source === k
-              );
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              aria-label="Slide precedente"
+              className="literary-icon-button"
+              onClick={() => go(current - 1)}
+              disabled={current === 0}
+            >
+              <ArrowLeft size={17} />
+            </button>
 
-              return (
-                <li
-                  key={k}
-                  className="border-b border-border/40"
+            <button
+              type="button"
+              aria-label="Slide successiva"
+              className="literary-icon-button"
+              onClick={() => go(current + 1)}
+              disabled={current === total - 1}
+            >
+              <ArrowRight size={17} />
+            </button>
+          </div>
+        </footer>
+
+        {menu && (
+          <nav className="literary-index">
+            <div className="mx-auto max-w-6xl">
+              <div className="mb-10 flex items-center justify-between">
+                <h2 className="font-serif text-5xl">
+                  Indice
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={() => setMenu(false)}
+                  aria-label="Chiudi indice"
                 >
-                  <button
-                    onClick={() => {
-                      go(p);
-                      setMenu(false);
-                    }}
-                    className={`flex w-full items-baseline gap-4 py-4 text-left transition hover:opacity-60 ${
-                      page.source === k
-                        ? "text-primary"
-                        : ""
-                    }`}
-                  >
-                    <span className="w-7 text-xs text-muted-foreground">
-                      {String(k + 1).padStart(2, "0")}
-                    </span>
+                  <X size={24} />
+                </button>
+              </div>
 
-                    <span className="font-serif text-xl md:text-2xl">
-                      {s.title}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </nav>
-    </div>
+              <ol className="grid gap-x-12 md:grid-cols-2">
+                {slides.map((slide, source) => {
+                  const firstPage = pages.findIndex(
+                    (item) => item.source === source
+                  );
+
+                  return (
+                    <li
+                      key={source}
+                      className="border-b border-border/30"
+                    >
+                      <button
+                        type="button"
+                        className={`flex w-full items-baseline gap-4 py-4 text-left transition hover:opacity-60 ${
+                          page.source === source
+                            ? "text-primary"
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setMenu(false);
+                          go(firstPage);
+                        }}
+                      >
+                        <span className="w-7 text-xs text-muted-foreground">
+                          {String(source + 1).padStart(2, "0")}
+                        </span>
+
+                        <span className="font-serif text-xl md:text-2xl">
+                          {slide.title}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </nav>
+        )}
+      </div>
+    </>
   );
 }
