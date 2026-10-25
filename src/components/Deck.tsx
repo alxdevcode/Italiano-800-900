@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -12,558 +13,647 @@ import { slides, type Slide } from "@/lib/slides";
 type Page = {
   slide: Slide;
   source: number;
-  part: number;
-  count: number;
   paragraphs: string[];
   points?: string[];
   quote?: Slide["quote"];
   cover: boolean;
 };
 
-const SPLIT_TITLES = new Set([
-  "Rosso Malpelo",
-  "I Malavoglia",
-  "Mastro-don Gesualdo",
-]);
-
 function createPages(): Page[] {
-  return slides.flatMap((slide, source) => {
-    if (!SPLIT_TITLES.has(slide.title)) {
-      return [{
-        slide,
-        source,
-        part: 0,
-        count: 1,
-        paragraphs: slide.body,
-        points: slide.points,
-        quote: slide.quote,
-        cover: Boolean(slide.cover),
-      }];
-    }
-
-    const middle = Math.ceil(slide.body.length / 2);
-
-    return [
-      {
-        slide,
-        source,
-        part: 0,
-        count: 2,
-        paragraphs: slide.body.slice(0, middle),
-        cover: false,
-      },
-      {
-        slide,
-        source,
-        part: 1,
-        count: 2,
-        paragraphs: slide.body.slice(middle),
-        points: slide.points,
-        quote: slide.quote,
-        cover: false,
-      },
-    ];
-  });
+  return slides.map((slide, source) => ({
+    slide,
+    source,
+    paragraphs: slide.body ?? [],
+    points: slide.points,
+    quote: slide.quote,
+    cover: Boolean(slide.cover) || source === slides.length - 1,
+  }));
 }
 
-const styles = `
-  .literary-deck {
+const deckCSS = `
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .deck {
     position: fixed !important;
     inset: 0 !important;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
     width: 100vw !important;
     height: 100vh !important;
     height: 100dvh !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: hidden;
     border: none !important;
     border-radius: 0 !important;
     outline: none !important;
     box-shadow: none !important;
-    overflow: hidden !important;
-    display: flex;
-    flex-direction: column;
-    isolation: isolate;
     background: var(--background);
     color: var(--foreground);
-    z-index: 100;
   }
 
-  .literary-deck *,
-  .literary-deck *::before,
-  .literary-deck *::after {
+  .deck, .deck * {
     box-sizing: border-box;
   }
 
-  .literary-header {
+  .deck-header {
     position: relative;
-    z-index: 20;
-    height: 62px;
-    flex: 0 0 62px;
+    z-index: 10;
+    flex: 0 0 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 4.5%;
     background: var(--background);
-    border: 0 !important;
-    box-shadow: none !important;
   }
 
-  .literary-stage {
+  .deck-logo {
+    border: 0;
+    background: none;
+    color: var(--foreground);
+    font-family: var(--font-serif);
+    font-size: 25px;
+    cursor: pointer;
+  }
+
+  .deck-index-button {
+    padding: 9px 22px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--foreground);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .deck-stage {
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
     overflow: hidden;
-    border: 0 !important;
   }
 
-  .literary-footer {
+  .deck-footer {
     position: relative;
-    z-index: 20;
-    height: 58px;
+    z-index: 10;
     flex: 0 0 58px;
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 20px;
     padding: 0 4.5%;
     background: var(--background);
-    border: 0 !important;
   }
 
-  .literary-cover {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: var(--background);
-  }
-
-  .literary-cover-image {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    border: 0 !important;
-    border-radius: 0 !important;
-  }
-
-  .literary-cover-shade {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(
-        90deg,
-        rgba(13,10,8,.91) 0%,
-        rgba(13,10,8,.65) 36%,
-        rgba(13,10,8,.15) 85%
-      ),
-      linear-gradient(
-        0deg,
-        rgba(13,10,8,.25),
-        transparent 45%
-      );
-  }
-
-  .literary-cover-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 100%;
-    width: min(100%, 980px);
-    padding: 32px 5%;
-  }
-
-  .literary-content {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    background: var(--background);
-  }
-
-  .literary-layout {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-    gap: clamp(26px, 4vw, 76px);
-    width: 100%;
-    height: 100%;
-    padding: clamp(20px, 3vh, 34px) 5%;
-  }
-
-  .literary-main {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    min-width: 0;
-  }
-
-  .literary-heading {
+  .deck-counter {
     flex-shrink: 0;
-    margin-bottom: clamp(12px, 2vh, 24px);
+    font-family: var(--font-serif);
+    font-size: 18px;
+    white-space: nowrap;
   }
 
-  .literary-body {
-    min-height: 0;
-    flex: 1;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
-    padding-right: 8px;
-    mask-image: linear-gradient(
-      to bottom,
-      black 0%,
-      black 94%,
-      transparent 100%
-    );
-  }
-
-  .literary-body::-webkit-scrollbar,
-  .literary-side-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  .literary-body p {
-    margin: 0 0 1em;
-    font-size: clamp(13px, .96vw, 16px);
-    line-height: 1.67;
-    color: var(--muted-foreground);
-  }
-
-  .literary-body p:first-child {
-    color: var(--foreground);
-  }
-
-  .literary-side {
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    overflow: hidden;
-  }
-
-  .literary-image {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 54%;
-    min-height: 0;
-    flex: 1 1 auto;
-    object-fit: cover;
-    object-position: center;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
-    background: transparent !important;
-  }
-
-  .literary-side-scroll {
-    flex: 0 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-width: none;
-  }
-
-  .literary-point {
-    display: flex;
-    align-items: baseline;
-    gap: 13px;
-    padding: 7px 0;
-    font-size: clamp(12px, .85vw, 14px);
-    line-height: 1.5;
-  }
-
-  .literary-quote {
-    margin-top: 14px;
-    padding-left: 16px;
-    border-left: 2px solid var(--primary);
-  }
-
-  .literary-progress {
+  .deck-progress {
     flex: 1;
     height: 1px;
     background: var(--border);
   }
 
-  .literary-progress-fill {
+  .deck-progress-fill {
     height: 100%;
     background: var(--primary);
-    transition: width .45s ease;
+    transition: width .4s ease;
   }
 
-  .literary-icon-button {
-    width: 39px;
-    height: 39px;
+  .deck-navigation {
+    display: flex;
+    gap: 9px;
+  }
+
+  .deck-arrow {
     display: grid;
     place-items: center;
+    width: 39px;
+    height: 39px;
     border: 1px solid var(--border);
     border-radius: 50%;
     background: transparent;
-    transition: background .2s ease;
+    color: var(--foreground);
+    cursor: pointer;
   }
 
-  .literary-icon-button:hover:not(:disabled) {
-    background: var(--secondary);
-  }
-
-  .literary-icon-button:disabled {
+  .deck-arrow:disabled {
     opacity: .25;
     cursor: not-allowed;
   }
 
-  .literary-index {
+  /* COPERTINA */
+
+  .deck-cover {
     position: absolute;
-    z-index: 50;
+    inset: 0;
+    overflow: hidden;
+    background: #100b08;
+  }
+
+  .deck-cover-image {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border: none;
+    border-radius: 0;
+  }
+
+  .deck-cover-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(10,7,5,.88) 0%,
+        rgba(10,7,5,.55) 40%,
+        rgba(10,7,5,.08) 100%
+      ),
+      linear-gradient(
+        0deg,
+        rgba(10,7,5,.22),
+        transparent 50%
+      );
+  }
+
+  .deck-cover-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: min(100%, 1050px);
+    height: 100%;
+    padding: 35px 5%;
+  }
+
+  .deck-kicker {
+    margin: 0;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+  }
+
+  .deck-cover-title {
+    margin: 25px 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(55px, 6vw, 108px);
+    font-weight: 400;
+    line-height: .99;
+    letter-spacing: -.035em;
+    color: var(--foreground);
+  }
+
+  .deck-cover-subtitle {
+    margin: 26px 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(23px, 2.3vw, 36px);
+    font-style: italic;
+    color: var(--primary);
+  }
+
+  .deck-cover-description {
+    max-width: 680px;
+    margin-top: 26px;
+    color: var(--foreground);
+    font-size: clamp(13px, 1vw, 16px);
+    line-height: 1.75;
+  }
+
+  .deck-cover-description p {
+    margin: 0 0 12px;
+  }
+
+  /* SLIDE INTERNE */
+
+  .deck-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    gap: clamp(30px, 4vw, 76px);
+    width: 100%;
+    height: 100%;
+    padding: clamp(20px, 3vh, 36px) 5%;
+    overflow: hidden;
+  }
+
+  .deck-text-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .deck-heading {
+    flex-shrink: 0;
+    margin-bottom: 22px;
+  }
+
+  .deck-title {
+    margin: 12px 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(37px, 3.7vw, 68px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -.025em;
+  }
+
+  .deck-subtitle {
+    margin: 10px 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(19px, 1.6vw, 28px);
+    font-style: italic;
+    color: var(--primary);
+  }
+
+  .deck-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .deck-body p {
+    margin: 0 0 19px;
+    font-size: clamp(13px, .95vw, 16px);
+    line-height: 1.75;
+    color: var(--muted-foreground);
+  }
+
+  .deck-body p:first-child {
+    color: var(--foreground);
+  }
+
+  .deck-body p:first-child::first-letter {
+    float: left;
+    padding-right: .08em;
+    font-family: var(--font-serif);
+    font-size: 3.3em;
+    line-height: .85;
+    color: var(--primary);
+  }
+
+  .deck-media-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .deck-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    flex: 0 0 auto;
+    object-fit: cover;
+    object-position: center;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent;
+  }
+
+  .deck-points {
+    width: 100%;
+    flex: 0 0 auto;
+    background: transparent;
+  }
+
+  .deck-points-label {
+    margin: 0 0 10px;
+    color: var(--primary);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+  }
+
+  .deck-point {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 8px 0;
+    font-size: clamp(12px, .86vw, 14px);
+    line-height: 1.55;
+  }
+
+  .deck-point-number {
+    flex-shrink: 0;
+    font-family: var(--font-serif);
+    color: var(--primary);
+  }
+
+  .deck-quote {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    border-left: 2px solid var(--primary);
+  }
+
+  .deck-quote-text {
+    font-family: var(--font-serif);
+    font-size: clamp(19px, 1.7vw, 28px);
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  .deck-quote-author {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted-foreground);
+  }
+
+  /* INDICE */
+
+  .deck-index {
+    position: absolute;
+    z-index: 30;
     inset: 0;
     overflow-y: auto;
     background: var(--popover);
-    padding: 90px 6% 45px;
+    padding: 35px 5%;
   }
 
-  @media (min-width: 1100px) {
-    .literary-layout.no-image {
-      grid-template-columns: minmax(0, 1fr) minmax(0, .85fr);
-    }
-
-    .literary-layout.no-image .literary-main {
-      max-width: 850px;
-    }
+  .deck-index-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
   }
+
+  .deck-index-title {
+    font-family: var(--font-serif);
+    font-size: 55px;
+  }
+
+  .deck-index-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 45px;
+  }
+
+  .deck-index-item {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 0;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    color: var(--foreground);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .deck-index-item:hover,
+  .deck-index-item.active {
+    color: var(--primary);
+  }
+
+  .deck-index-item span:last-child {
+    font-family: var(--font-serif);
+    font-size: 24px;
+  }
+
+  /* RESPONSIVE */
 
   @media (max-width: 900px) {
-    .literary-layout {
+    .deck-header {
+      flex-basis: 54px;
+      padding: 0 5%;
+    }
+
+    .deck-footer {
+      flex-basis: 54px;
+      padding: 0 5%;
+      gap: 12px;
+    }
+
+    .deck-content {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: minmax(0, 1fr) auto;
       gap: 14px;
-      padding: 18px 5%;
+      padding: 16px 5%;
     }
 
-    .literary-side {
-      max-height: 32vh;
+    .deck-heading {
+      margin-bottom: 12px;
     }
 
-    .literary-image {
-      max-height: 19vh;
-      flex: 0 0 auto;
-      width: 100%;
-      aspect-ratio: 16 / 7;
+    .deck-title {
+      font-size: clamp(34px, 6vw, 54px);
     }
 
-    .literary-side-scroll {
-      max-height: 11vh;
-    }
-
-    .literary-body p {
+    .deck-body p {
       font-size: 13px;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
-    .literary-cover-content {
-      padding: 25px 6%;
+    .deck-media-column {
+      max-height: 34vh;
+      justify-content: flex-start;
+    }
+
+    .deck-image {
+      width: min(100%, 560px);
+    }
+
+    .deck-cover-content {
+      padding: 24px 6%;
+    }
+
+    .deck-cover-title {
+      font-size: clamp(47px, 9vw, 85px);
+    }
+
+    .deck-index-grid {
+      grid-template-columns: 1fr;
     }
   }
 
-  @media (max-height: 650px) and (min-width: 901px) {
-    .literary-layout {
-      padding-top: 12px;
-      padding-bottom: 12px;
+  @media (max-height: 700px) and (min-width: 901px) {
+    .deck-content {
+      padding-top: 14px;
+      padding-bottom: 14px;
     }
 
-    .literary-heading {
-      margin-bottom: 8px;
+    .deck-heading {
+      margin-bottom: 12px;
     }
 
-    .literary-image {
-      max-height: 43%;
+    .deck-title {
+      font-size: clamp(34px, 3vw, 55px);
     }
 
-    .literary-header {
-      height: 50px;
-      flex-basis: 50px;
-    }
-
-    .literary-footer {
-      height: 48px;
-      flex-basis: 48px;
+    .deck-media-column {
+      justify-content: flex-start;
     }
   }
 `;
 
 function Cover({ page }: { page: Page }) {
-  const slide = page.slide;
+  const { slide } = page;
 
   return (
-    <section className="literary-cover">
+    <section className="deck-cover">
       {slide.image && (
         <img
           src={slide.image}
           alt={slide.title}
-          className="literary-cover-image"
+          className="deck-cover-image"
         />
       )}
 
-      <div className="literary-cover-shade" />
+      <div className="deck-cover-overlay" />
 
-      <div className="literary-cover-content">
-        <p className="kicker">
+      <div className="deck-cover-content">
+        <p className="deck-kicker">
           {slide.chapter}
         </p>
 
-        <h1 className="mt-6 max-w-[950px] font-serif text-[clamp(3.2rem,6vw,7rem)] leading-[.99] tracking-tight text-foreground">
+        <h1 className="deck-cover-title">
           {slide.title}
         </h1>
 
         {slide.subtitle && (
-          <p className="mt-7 font-serif text-[clamp(1.3rem,2vw,2.3rem)] italic text-primary">
+          <p className="deck-cover-subtitle">
             {slide.subtitle}
           </p>
         )}
 
-        <div className="mt-7 max-w-[650px] space-y-4">
-          {page.paragraphs.map((text, i) => (
-            <p
-              key={i}
-              className="text-[clamp(.88rem,1.1vw,1.1rem)] leading-relaxed text-foreground/85"
-            >
-              {text}
-            </p>
-          ))}
-        </div>
+        {page.paragraphs.length > 0 && (
+          <div className="deck-cover-description">
+            {page.paragraphs.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-function ContentPage({ page }: { page: Page }) {
-  const slide = page.slide;
-  const showImage = Boolean(slide.image && page.part === 0);
-  const showPoints = Boolean(page.points?.length);
-  const showQuote = Boolean(page.quote);
+function ContentSlide({ page }: { page: Page }) {
+  const { slide } = page;
 
   return (
-    <section className="literary-content">
-      <div
-        className={`literary-layout ${
-          showImage ? "" : "no-image"
-        }`}
-      >
-        <div className="literary-main">
-          <div className="literary-heading">
-            <p className="kicker">
-              {String(page.source + 1).padStart(2, "0")}
-              {" · "}
-              {slide.chapter}
-              {page.count > 1 &&
-                ` · Parte ${page.part + 1}/${page.count}`}
+    <section className="deck-content">
+      <div className="deck-text-column">
+        <div className="deck-heading">
+          <p className="deck-kicker">
+            {String(page.source + 1).padStart(2, "0")}
+            {" · "}
+            {slide.chapter}
+          </p>
+
+          <h2 className="deck-title">
+            {slide.title}
+          </h2>
+
+          {slide.subtitle && (
+            <p className="deck-subtitle">
+              {slide.subtitle}
             </p>
-
-            <h2 className="mt-3 font-serif text-[clamp(2.1rem,3.6vw,4.4rem)] leading-[1.05] tracking-tight">
-              {slide.title}
-            </h2>
-
-            {slide.subtitle && (
-              <p className="mt-2 font-serif text-[clamp(1.05rem,1.5vw,1.6rem)] italic text-primary">
-                {slide.subtitle}
-              </p>
-            )}
-          </div>
-
-          <div className="literary-body">
-            {page.paragraphs.map((text, i) => (
-              <p
-                key={i}
-                className={i === 0 ? "dropcap" : ""}
-              >
-                {text}
-              </p>
-            ))}
-          </div>
+          )}
         </div>
 
-        <aside className="literary-side">
-          {showImage && (
-            <img
-              src={slide.image}
-              alt={slide.title}
-              className="literary-image"
-            />
-          )}
-
-          {(showPoints || showQuote) && (
-            <div className="literary-side-scroll">
-              {showPoints && (
-                <div>
-                  <p className="mb-2 text-[10px] uppercase tracking-[.24em] text-primary">
-                    Concetti fondamentali
-                  </p>
-
-                  {page.points!.map((point, i) => (
-                    <div
-                      className="literary-point"
-                      key={i}
-                    >
-                      <span className="shrink-0 font-serif text-primary">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-
-                      <span className="text-foreground/90">
-                        {point}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {showQuote && (
-                <blockquote className="literary-quote">
-                  <p className="font-serif text-[clamp(1.1rem,1.5vw,1.7rem)] italic leading-snug">
-                    «{page.quote!.text}»
-                  </p>
-
-                  <footer className="mt-3 text-xs tracking-wide text-muted-foreground">
-                    {page.quote!.by}
-                  </footer>
-                </blockquote>
-              )}
-            </div>
-          )}
-
-          {!showImage && !showPoints && !showQuote && (
-            <div className="flex h-full items-center justify-center">
-              <p className="max-w-md font-serif text-[clamp(2.5rem,4vw,5rem)] italic leading-tight text-primary/50">
-                {slide.subtitle || slide.chapter}
-              </p>
-            </div>
-          )}
-        </aside>
+        <div className="deck-body">
+          {page.paragraphs.map((paragraph, i) => (
+            <p key={i}>{paragraph}</p>
+          ))}
+        </div>
       </div>
+
+      <aside className="deck-media-column">
+        {slide.image && (
+          <img
+            src={slide.image}
+            alt={slide.title}
+            className="deck-image"
+          />
+        )}
+
+        {Boolean(page.points?.length) && (
+          <div className="deck-points">
+            <p className="deck-points-label">
+              Concetti fondamentali
+            </p>
+
+            {page.points!.map((point, i) => (
+              <div className="deck-point" key={i}>
+                <span className="deck-point-number">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span>{point}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {page.quote && (
+          <blockquote className="deck-quote">
+            <p className="deck-quote-text">
+              «{page.quote.text}»
+            </p>
+            <footer className="deck-quote-author">
+              {page.quote.by}
+            </footer>
+          </blockquote>
+        )}
+      </aside>
     </section>
   );
 }
 
 export function Deck({ index }: { index: number }) {
   const navigate = useNavigate();
-
   const pages = useMemo(() => createPages(), []);
-  const [menu, setMenu] = useState(false);
+  const total = pages.length;
+
+  const current = Math.max(
+    0,
+    Math.min(index, total - 1)
+  );
+
+  const page = pages[current];
+
+  const [indexOpen, setIndexOpen] = useState(false);
 
   const touchStart = useRef<number | null>(null);
   const wheelLock = useRef(0);
 
-  const total = pages.length;
-  const current = Math.max(0, Math.min(index, total - 1));
-  const page = pages[current];
-
   const go = useCallback(
     (next: number) => {
-      const target = Math.max(0, Math.min(next, total - 1));
+      const target = Math.max(
+        0,
+        Math.min(next, total - 1)
+      );
 
       if (target === current) return;
 
@@ -573,84 +663,73 @@ export function Deck({ index }: { index: number }) {
         replace: true,
       });
     },
-    [current, navigate, total]
+    [navigate, current, total]
   );
 
   useEffect(() => {
     document.title =
-      `${current + 1}/${total} — ${page.slide.title}`;
-  }, [current, total, page.slide.title]);
+      `${page.slide.title} — Il Vero`;
+  }, [page.slide.title]);
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
+    const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setMenu(false);
+        setIndexOpen(false);
         return;
       }
 
-      if (event.key.toLowerCase() === "m") {
-        setMenu((previous) => !previous);
-        return;
-      }
-
-      if (menu) return;
-
-      const target = event.target;
+      if (indexOpen) return;
 
       if (
-        target instanceof HTMLElement &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA")
-      ) {
-        return;
-      }
-
-      if (
-        ["ArrowRight", "PageDown", " "].includes(event.key)
+        event.key === "ArrowRight" ||
+        event.key === "PageDown"
       ) {
         event.preventDefault();
         go(current + 1);
       }
 
       if (
-        ["ArrowLeft", "PageUp"].includes(event.key)
+        event.key === "ArrowLeft" ||
+        event.key === "PageUp"
       ) {
         event.preventDefault();
         go(current - 1);
       }
 
       if (event.key === "Home") {
-        event.preventDefault();
         go(0);
       }
 
       if (event.key === "End") {
-        event.preventDefault();
         go(total - 1);
       }
     };
 
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", handleKey);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keydown", handleKey);
     };
-  }, [current, go, menu, total]);
+  }, [current, go, indexOpen, total]);
 
   return (
     <>
-      <style>{styles}</style>
+      <style>{deckCSS}</style>
 
       <div
-        className="literary-deck"
+        className="deck"
         onTouchStart={(event) => {
           touchStart.current =
             event.touches[0]?.clientX ?? null;
         }}
         onTouchEnd={(event) => {
-          if (menu || touchStart.current === null) return;
+          if (indexOpen || touchStart.current === null) {
+            return;
+          }
 
-          const end = event.changedTouches[0]?.clientX;
+          const end =
+            event.changedTouches[0]?.clientX;
+
           if (end === undefined) return;
 
           const delta = end - touchStart.current;
@@ -662,14 +741,14 @@ export function Deck({ index }: { index: number }) {
           touchStart.current = null;
         }}
         onWheel={(event) => {
-          if (menu) return;
+          if (indexOpen) return;
 
-          // Non cambiare slide mentre si legge un testo lungo.
           const target = event.target;
+
           if (
             target instanceof Element &&
             target.closest(
-              ".literary-body, .literary-side-scroll"
+              ".deck-body, .deck-media-column"
             )
           ) {
             return;
@@ -678,139 +757,125 @@ export function Deck({ index }: { index: number }) {
           if (Math.abs(event.deltaY) < 25) return;
 
           const now = Date.now();
-          if (now - wheelLock.current < 850) return;
+
+          if (now - wheelLock.current < 850) {
+            return;
+          }
 
           wheelLock.current = now;
+
           go(current + (event.deltaY > 0 ? 1 : -1));
         }}
       >
-        <header className="literary-header">
+        <header className="deck-header">
           <button
+            className="deck-logo"
             type="button"
             onClick={() => go(0)}
-            className="font-serif text-2xl tracking-tight"
           >
             Il Vero
           </button>
 
           <button
+            className="deck-index-button"
             type="button"
-            onClick={() => setMenu((previous) => !previous)}
-            className="rounded-full border border-border/30 px-5 py-2 text-xs transition hover:bg-secondary"
+            onClick={() => setIndexOpen(!indexOpen)}
           >
-            {menu ? "Chiudi" : "Indice"}
+            {indexOpen ? "Chiudi" : "Indice"}
           </button>
         </header>
 
-        <main className="literary-stage">
+        <main className="deck-stage">
           <div
             key={current}
-            className="h-full w-full animate-in fade-in duration-500"
+            className="h-full w-full"
           >
             {page.cover ? (
               <Cover page={page} />
             ) : (
-              <ContentPage page={page} />
+              <ContentSlide page={page} />
             )}
           </div>
+
+          {indexOpen && (
+            <div className="deck-index">
+              <div className="deck-index-top">
+                <h2 className="deck-index-title">
+                  Indice
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={() => setIndexOpen(false)}
+                  aria-label="Chiudi indice"
+                >
+                  <X size={25} />
+                </button>
+              </div>
+
+              <div className="deck-index-grid">
+                {pages.map((item, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`deck-index-item ${
+                      i === current ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      setIndexOpen(false);
+                      go(i);
+                    }}
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+
+                    <span>{item.slide.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
 
-        <footer className="literary-footer">
-          <span className="shrink-0 font-serif text-lg tabular-nums">
+        <footer className="deck-footer">
+          <span className="deck-counter">
             {String(current + 1).padStart(2, "0")}
-            <span className="text-muted-foreground">
-              {" / "}
-              {total}
-            </span>
+            {" / "}
+            {total}
           </span>
 
-          <div className="literary-progress">
+          <div className="deck-progress">
             <div
-              className="literary-progress-fill"
+              className="deck-progress-fill"
               style={{
                 width: `${((current + 1) / total) * 100}%`,
               }}
             />
           </div>
 
-          <div className="flex shrink-0 gap-2">
+          <div className="deck-navigation">
             <button
+              className="deck-arrow"
               type="button"
               aria-label="Slide precedente"
-              className="literary-icon-button"
-              onClick={() => go(current - 1)}
               disabled={current === 0}
+              onClick={() => go(current - 1)}
             >
               <ArrowLeft size={17} />
             </button>
 
             <button
+              className="deck-arrow"
               type="button"
               aria-label="Slide successiva"
-              className="literary-icon-button"
-              onClick={() => go(current + 1)}
               disabled={current === total - 1}
+              onClick={() => go(current + 1)}
             >
               <ArrowRight size={17} />
             </button>
           </div>
         </footer>
-
-        {menu && (
-          <nav className="literary-index">
-            <div className="mx-auto max-w-6xl">
-              <div className="mb-10 flex items-center justify-between">
-                <h2 className="font-serif text-5xl">
-                  Indice
-                </h2>
-
-                <button
-                  type="button"
-                  onClick={() => setMenu(false)}
-                  aria-label="Chiudi indice"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <ol className="grid gap-x-12 md:grid-cols-2">
-                {slides.map((slide, source) => {
-                  const firstPage = pages.findIndex(
-                    (item) => item.source === source
-                  );
-
-                  return (
-                    <li
-                      key={source}
-                      className="border-b border-border/30"
-                    >
-                      <button
-                        type="button"
-                        className={`flex w-full items-baseline gap-4 py-4 text-left transition hover:opacity-60 ${
-                          page.source === source
-                            ? "text-primary"
-                            : ""
-                        }`}
-                        onClick={() => {
-                          setMenu(false);
-                          go(firstPage);
-                        }}
-                      >
-                        <span className="w-7 text-xs text-muted-foreground">
-                          {String(source + 1).padStart(2, "0")}
-                        </span>
-
-                        <span className="font-serif text-xl md:text-2xl">
-                          {slide.title}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-          </nav>
-        )}
       </div>
     </>
   );
