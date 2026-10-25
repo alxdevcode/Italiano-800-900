@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -6,16 +7,8 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  ArrowRight,
-  X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { slides, type Slide } from "@/lib/slides";
-
-/* =========================================================
-   TYPES
-========================================================= */
 
 type Page = {
   slide: Slide;
@@ -25,10 +18,6 @@ type Page = {
   points?: string[];
   quote?: Slide["quote"];
 };
-
-/* =========================================================
-   DATA
-========================================================= */
 
 function buildPages(): Page[] {
   return slides.map((slide, source) => ({
@@ -41,12 +30,10 @@ function buildPages(): Page[] {
   }));
 }
 
-/* =========================================================
-   STYLES
-========================================================= */
-
 const deckStyles = `
-  /* RESET */
+  /* ==============================
+     GLOBAL / ROOT
+  ============================== */
 
   html,
   body,
@@ -64,136 +51,446 @@ const deckStyles = `
   }
 
   .literary-deck {
-    position: fixed !important;
-    inset: 0 !important;
+    position: fixed;
+    inset: 0;
     z-index: 9999;
-
-    display: flex;
-    flex-direction: column;
-
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
-
-    border: 0 !important;
+    background: #100b08;
+    color: #f3e9db;
+    font-family: "Manrope", sans-serif;
+    border: none !important;
     border-radius: 0 !important;
-    outline: 0 !important;
     box-shadow: none !important;
-
-    background: var(--background);
-    color: var(--foreground);
   }
 
-  /* HEADER */
+  /* ==============================
+     HEADER
+  ============================== */
 
   .literary-header {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 30;
-
+    height: 64px;
+    padding: 0 5%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    flex: 0 0 64px;
-    height: 64px;
-
-    padding: 0 5%;
-
-    background: var(--background);
-    border: 0;
+    background: transparent;
   }
 
   .literary-logo {
-    padding: 0;
     border: 0;
     background: transparent;
-
-    font-family: var(--font-serif);
+    color: #f3e9db;
+    font-family: "Instrument Serif", Georgia, serif;
     font-size: 26px;
-    color: var(--foreground);
-
     cursor: pointer;
   }
 
   .literary-index-button {
     padding: 9px 22px;
-
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255,255,255,.2);
     border-radius: 999px;
-
-    background: transparent;
-    color: var(--foreground);
-
+    background: rgba(16,11,8,.35);
+    color: #f3e9db;
     font-size: 12px;
     cursor: pointer;
-
-    transition: background .2s ease;
   }
 
-  .literary-index-button:hover {
-    background: var(--secondary);
-  }
-
-  /* MAIN STAGE */
+  /* ==============================
+     STAGE
+  ============================== */
 
   .literary-stage {
-    position: relative;
-
-    flex: 1 1 auto;
-    min-height: 0;
-
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .literary-slide {
-    position: relative;
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
   }
 
-  /* FOOTER */
+  .literary-slide {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ==============================
+     COVER FULLSCREEN
+  ============================== */
+
+  .literary-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #100b08;
+    overflow: hidden;
+  }
+
+  .literary-cover-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .literary-cover-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(10,7,5,.92) 0%,
+        rgba(10,7,5,.72) 32%,
+        rgba(10,7,5,.2) 75%,
+        rgba(10,7,5,.08) 100%
+      ),
+      linear-gradient(
+        0deg,
+        rgba(10,7,5,.5),
+        transparent 25%,
+        transparent 75%,
+        rgba(10,7,5,.25)
+      );
+  }
+
+  .literary-cover-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: min(100%, 1050px);
+    height: 100%;
+    padding: 85px 5%;
+  }
+
+  .literary-kicker {
+    margin: 0;
+    color: #dba45f;
+    font-family: "Manrope", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+  }
+
+  .literary-cover-title {
+    margin: 25px 0 0;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: clamp(60px, 6.2vw, 112px);
+    font-weight: 400;
+    line-height: .98;
+    letter-spacing: -.035em;
+    color: #f3e9db;
+  }
+
+  .literary-cover-subtitle {
+    margin: 25px 0 0;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: clamp(25px, 2.4vw, 40px);
+    font-style: italic;
+    color: #dba45f;
+  }
+
+  .literary-cover-description {
+    max-width: 670px;
+    max-height: 35vh;
+    margin-top: 25px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .literary-cover-description p {
+    margin: 0 0 16px;
+    font-size: clamp(13px, 1vw, 16px);
+    line-height: 1.8;
+    color: #eee4d7;
+  }
+
+  /* ==============================
+     CONTENT SLIDES
+     TEXT LEFT / IMAGE RIGHT
+  ============================== */
+
+  .literary-content {
+    position: relative;
+    display: grid;
+    grid-template-columns: 50% 50%;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #100b08;
+  }
+
+  .literary-text-column {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding:
+      clamp(92px, 11vh, 125px)
+      clamp(35px, 4vw, 75px)
+      90px
+      5%;
+    background:
+      linear-gradient(
+        90deg,
+        #100b08 0%,
+        #100b08 78%,
+        rgba(16,11,8,.95) 100%
+      );
+  }
+
+  .literary-heading {
+    flex-shrink: 0;
+    margin-bottom: clamp(25px, 4vh, 48px);
+  }
+
+  .literary-title {
+    margin: 14px 0 0;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: clamp(46px, 4vw, 76px);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    color: #f3e9db;
+  }
+
+  .literary-subtitle {
+    margin: 14px 0 0;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: clamp(22px, 1.8vw, 32px);
+    font-style: italic;
+    color: #dba45f;
+  }
+
+  .literary-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.2) transparent;
+  }
+
+  .literary-body p {
+    margin: 0 0 20px;
+    font-family: "Manrope", sans-serif;
+    font-size: clamp(13px, .95vw, 16px);
+    font-weight: 400;
+    line-height: 1.8;
+    color: #bcb4aa;
+  }
+
+  .literary-body p:first-child {
+    color: #f3e9db;
+  }
+
+  .literary-body p:first-child::first-letter {
+    float: left;
+    padding-right: .09em;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: 3.5em;
+    line-height: .85;
+    color: #dba45f;
+  }
+
+  /* ==============================
+     FULL HEIGHT IMAGE
+  ============================== */
+
+  .literary-media-column {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #100b08;
+  }
+
+  .literary-image {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: cover;
+    object-position: center;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .literary-media-column::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(16,11,8,.28),
+        transparent 30%
+      ),
+      linear-gradient(
+        0deg,
+        rgba(16,11,8,.25),
+        transparent 30%
+      );
+  }
+
+  /* ==============================
+     CONCEPTS OVER IMAGE
+  ============================== */
+
+  .literary-points {
+    position: absolute;
+    z-index: 3;
+    left: 5%;
+    right: 8%;
+    bottom: 12%;
+    width: auto;
+    max-height: 35%;
+    overflow-y: auto;
+    padding: 24px 28px;
+    background: rgba(13,9,7,.88);
+    backdrop-filter: blur(12px);
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    scrollbar-width: thin;
+  }
+
+  .literary-points-label {
+    margin: 0 0 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: #dba45f;
+  }
+
+  .literary-point {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    font-size: clamp(12px, .85vw, 14px);
+    line-height: 1.5;
+    color: #eee4d7;
+  }
+
+  .literary-point:last-child {
+    border-bottom: 0;
+  }
+
+  .literary-point-number {
+    flex-shrink: 0;
+    min-width: 20px;
+    font-family: "Instrument Serif", Georgia, serif;
+    color: #dba45f;
+  }
+
+  /* ==============================
+     QUOTES
+  ============================== */
+
+  .literary-quote {
+    position: absolute;
+    z-index: 3;
+    left: 5%;
+    right: 8%;
+    bottom: 12%;
+    margin: 0;
+    padding: 24px 28px;
+    background: rgba(13,9,7,.88);
+    backdrop-filter: blur(12px);
+    border-left: 2px solid #dba45f;
+  }
+
+  .literary-quote-text {
+    margin: 0;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: clamp(21px, 1.8vw, 32px);
+    font-style: italic;
+    line-height: 1.3;
+    color: #f3e9db;
+  }
+
+  .literary-quote-author {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #bcb4aa;
+  }
+
+  .literary-media-column:has(.literary-points)
+  .literary-quote {
+    bottom: auto;
+    top: 10%;
+  }
+
+  /* ==============================
+     FOOTER
+  ============================== */
 
   .literary-footer {
-    position: relative;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     z-index: 30;
-
     display: flex;
     align-items: center;
     gap: 20px;
-
-    flex: 0 0 62px;
     height: 62px;
-
     padding: 0 5%;
-
-    background: var(--background);
-    border: 0;
+    background: linear-gradient(
+      0deg,
+      rgba(10,7,5,.85),
+      transparent
+    );
   }
 
   .literary-counter {
     flex-shrink: 0;
-
-    font-family: var(--font-serif);
+    font-family: "Instrument Serif", Georgia, serif;
     font-size: 18px;
+    color: #f3e9db;
     white-space: nowrap;
   }
 
   .literary-progress {
     flex: 1;
     height: 1px;
-    background: var(--border);
+    background: rgba(255,255,255,.25);
   }
 
   .literary-progress-fill {
     height: 100%;
-    background: var(--primary);
+    background: #dba45f;
     transition: width .45s ease;
   }
 
@@ -206,22 +503,18 @@ const deckStyles = `
   .literary-arrow {
     display: grid;
     place-items: center;
-
     width: 40px;
     height: 40px;
-
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255,255,255,.25);
     border-radius: 50%;
-
-    background: transparent;
-    color: var(--foreground);
-
+    background: rgba(16,11,8,.35);
+    color: #f3e9db;
     cursor: pointer;
     transition: background .2s ease;
   }
 
   .literary-arrow:hover:not(:disabled) {
-    background: var(--secondary);
+    background: rgba(255,255,255,.12);
   }
 
   .literary-arrow:disabled {
@@ -229,338 +522,17 @@ const deckStyles = `
     cursor: not-allowed;
   }
 
-  /* =======================================================
-     FULLSCREEN COVER
-  ======================================================= */
-
-  .literary-deck.is-cover .literary-stage {
-    position: absolute;
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    flex: none;
-  }
-
-  .literary-deck.is-cover .literary-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-
-    flex: none;
-    background: transparent !important;
-  }
-
-  .literary-deck.is-cover .literary-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    flex: none;
-    background: transparent !important;
-  }
-
-  .literary-deck.is-cover .literary-logo,
-  .literary-deck.is-cover .literary-counter,
-  .literary-deck.is-cover .literary-arrow {
-    color: #f5ead9;
-  }
-
-  .literary-deck.is-cover .literary-index-button {
-    color: #f5ead9;
-    border-color: rgba(255,255,255,.28);
-  }
-
-  .literary-deck.is-cover .literary-arrow {
-    border-color: rgba(255,255,255,.25);
-  }
-
-  .literary-deck.is-cover .literary-progress {
-    background: rgba(255,255,255,.25);
-  }
-
-  .literary-cover {
-    position: absolute;
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-    background: #100b08;
-  }
-
-  .literary-cover-image {
-    position: absolute;
-    inset: 0;
-
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    max-width: none;
-    max-height: none;
-
-    object-fit: cover;
-    object-position: center;
-
-    border: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-
-  .literary-cover-overlay {
-    position: absolute;
-    inset: 0;
-
-    background:
-      linear-gradient(
-        90deg,
-        rgba(10,7,5,.91) 0%,
-        rgba(10,7,5,.72) 28%,
-        rgba(10,7,5,.32) 62%,
-        rgba(10,7,5,.08) 100%
-      ),
-      linear-gradient(
-        0deg,
-        rgba(10,7,5,.48) 0%,
-        transparent 28%,
-        transparent 75%,
-        rgba(10,7,5,.28) 100%
-      );
-  }
-
-  .literary-cover-content {
-    position: relative;
-    z-index: 2;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    width: min(100%, 1050px);
-    height: 100%;
-
-    padding: 90px 5%;
-  }
-
-  .literary-kicker {
-    margin: 0;
-
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: .3em;
-    text-transform: uppercase;
-
-    color: var(--primary);
-  }
-
-  .literary-cover-title {
-    margin: 25px 0 0;
-
-    font-family: var(--font-serif);
-    font-size: clamp(55px, 6vw, 110px);
-    font-weight: 400;
-    line-height: .99;
-    letter-spacing: -.035em;
-
-    color: #f5ead9;
-  }
-
-  .literary-cover-subtitle {
-    margin: 28px 0 0;
-
-    font-family: var(--font-serif);
-    font-size: clamp(23px, 2.3vw, 37px);
-    font-style: italic;
-
-    color: var(--primary);
-  }
-
-  .literary-cover-description {
-    max-width: 660px;
-    max-height: 35vh;
-
-    margin-top: 26px;
-
-    overflow-y: auto;
-    scrollbar-width: thin;
-
-    color: #eee5d8;
-    font-size: clamp(13px, 1vw, 16px);
-    line-height: 1.75;
-  }
-
-  .literary-cover-description p {
-    margin: 0 0 14px;
-  }
-
-
-/* SLIDE INTERNE — STILE EDITORIALE IMMERSIVO */
-
-.literary-content {
-  position: relative;
-  display: grid;
-  grid-template-columns: 50% 50%;
-  gap: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  overflow: hidden;
-  background: #100b08;
-}
-
-.literary-text-column {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding: 28px 5% 35px 10%;
-  background: linear-gradient(
-    90deg,
-    #100b08 0%,
-    #100b08 75%,
-    rgba(16, 11, 8, 0.94) 100%
-  );
-}
-
-.literary-heading {
-  flex-shrink: 0;
-  margin-bottom: 35px;
-}
-
-.literary-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 15px;
-}
-
-.literary-media-column {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.literary-image {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  aspect-ratio: auto;
-  object-fit: cover;
-  object-position: center;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.literary-media-column::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(16, 11, 8, 0.35),
-    transparent 35%
-  );
-}
-
-.literary-points {
-  position: absolute;
-  z-index: 2;
-  left: 5%;
-  right: 8%;
-  bottom: 7%;
-  width: auto;
-  max-height: 42%;
-  overflow-y: auto;
-  padding: 22px 28px;
-  background: rgba(13, 9, 7, 0.88);
-  backdrop-filter: blur(12px);
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.literary-quote {
-  position: absolute;
-  z-index: 3;
-  bottom: 5%;
-  left: 5%;
-  right: 8%;
-  margin: 0;
-  padding: 18px 24px;
-  background: rgba(13, 9, 7, 0.88);
-  backdrop-filter: blur(12px);
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 900px) {
-  .literary-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 55%) minmax(0, 45%);
-  }
-
-  .literary-text-column {
-    padding: 20px 6%;
-  }
-
-  .literary-heading {
-    margin-bottom: 16px;
-  }
-
-  .literary-media-column {
-    height: 100%;
-    max-height: none;
-  }
-
-  .literary-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .literary-points {
-    left: 4%;
-    right: 4%;
-    bottom: 5%;
-    padding: 14px;
-    max-height: 65%;
-  }
-}
-
-
-  /* =======================================================
+  /* ==============================
      INDEX
-  ======================================================= */
+  ============================== */
 
   .literary-index {
     position: fixed;
     inset: 0;
     z-index: 100;
-
     overflow-y: auto;
-
     padding: 90px 6% 45px;
-
-    background: var(--popover);
+    background: #100b08;
   }
 
   .literary-index-top {
@@ -571,8 +543,10 @@ const deckStyles = `
   }
 
   .literary-index-title {
-    font-family: var(--font-serif);
+    margin: 0;
+    font-family: "Instrument Serif", Georgia, serif;
     font-size: 58px;
+    font-weight: 400;
   }
 
   .literary-index-grid {
@@ -585,84 +559,99 @@ const deckStyles = `
     display: flex;
     align-items: baseline;
     gap: 16px;
-
     width: 100%;
     padding: 14px 0;
-
     border: 0;
-    border-bottom: 1px solid var(--border);
-
+    border-bottom: 1px solid rgba(255,255,255,.12);
     background: transparent;
-    color: var(--foreground);
-
+    color: #f3e9db;
     text-align: left;
     cursor: pointer;
   }
 
   .literary-index-item:hover,
   .literary-index-item.active {
-    color: var(--primary);
+    color: #dba45f;
   }
 
   .literary-index-item span:last-child {
-    font-family: var(--font-serif);
+    font-family: "Instrument Serif", Georgia, serif;
     font-size: 24px;
   }
 
-  /* =======================================================
-     RESPONSIVE
-  ======================================================= */
+  /* ==============================
+     TABLET / MOBILE
+  ============================== */
 
   @media (max-width: 900px) {
     .literary-header {
       height: 54px;
-      flex-basis: 54px;
     }
 
     .literary-footer {
       height: 54px;
-      flex-basis: 54px;
       gap: 12px;
     }
 
     .literary-content {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: minmax(0, 1fr) auto;
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(0, 55%) minmax(0, 45%);
+    }
 
-      gap: 14px;
-      padding: 16px 5%;
+    .literary-text-column {
+      padding: 75px 6% 15px;
+      background: #100b08;
     }
 
     .literary-heading {
-      margin-bottom: 12px;
+      margin-bottom: 15px;
     }
 
     .literary-title {
-      font-size: clamp(34px, 6vw, 54px);
+      font-size: clamp(36px, 7vw, 55px);
+    }
+
+    .literary-subtitle {
+      font-size: 22px;
     }
 
     .literary-body p {
       font-size: 13px;
-      line-height: 1.6;
+      line-height: 1.65;
+      margin-bottom: 12px;
     }
 
     .literary-media-column {
-      max-height: 34vh;
-      justify-content: flex-start;
-      gap: 12px;
+      height: 100%;
     }
 
     .literary-image {
-      width: min(100%, 560px);
-      aspect-ratio: 16 / 9;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .literary-points {
+      left: 4%;
+      right: 4%;
+      bottom: 15%;
+      max-height: 65%;
+      padding: 14px 18px;
+    }
+
+    .literary-quote {
+      left: 4%;
+      right: 4%;
+      bottom: 15%;
+      padding: 15px 18px;
     }
 
     .literary-cover-content {
-      padding: 90px 6%;
+      padding: 80px 6%;
     }
 
     .literary-cover-title {
-      font-size: clamp(47px, 9vw, 85px);
+      font-size: clamp(48px, 9vw, 85px);
     }
 
     .literary-index-grid {
@@ -670,29 +659,26 @@ const deckStyles = `
     }
   }
 
-  @media (max-height: 700px) and (min-width: 901px) {
-    .literary-content {
-      padding-top: 14px;
-      padding-bottom: 14px;
+  @media (max-height: 650px) and (min-width: 901px) {
+    .literary-text-column {
+      padding-top: 75px;
+      padding-bottom: 65px;
     }
 
     .literary-heading {
-      margin-bottom: 12px;
+      margin-bottom: 15px;
     }
 
     .literary-title {
-      font-size: clamp(34px, 3vw, 55px);
+      font-size: clamp(36px, 3vw, 55px);
     }
 
-    .literary-media-column {
-      justify-content: flex-start;
+    .literary-body p {
+      line-height: 1.55;
+      margin-bottom: 12px;
     }
   }
 `;
-
-/* =========================================================
-   COVER COMPONENT
-========================================================= */
 
 function Cover({ page }: { page: Page }) {
   const { slide } = page;
@@ -735,10 +721,6 @@ function Cover({ page }: { page: Page }) {
     </section>
   );
 }
-
-/* =========================================================
-   CONTENT COMPONENT
-========================================================= */
 
 function ContentSlide({ page }: { page: Page }) {
   const { slide } = page;
@@ -817,10 +799,6 @@ function ContentSlide({ page }: { page: Page }) {
   );
 }
 
-/* =========================================================
-   MAIN DECK
-========================================================= */
-
 export function Deck({ index }: { index: number }) {
   const navigate = useNavigate();
 
@@ -858,8 +836,7 @@ export function Deck({ index }: { index: number }) {
   );
 
   useEffect(() => {
-    document.title =
-      `${page.slide.title} — Il Vero`;
+    document.title = `${page.slide.title} — Il Vero`;
   }, [page.slide.title]);
 
   useEffect(() => {
@@ -910,9 +887,7 @@ export function Deck({ index }: { index: number }) {
       <style>{deckStyles}</style>
 
       <div
-        className={`literary-deck ${
-          page.cover ? "is-cover" : ""
-        }`}
+        className="literary-deck"
         onTouchStart={(event) => {
           touchStart.current =
             event.touches[0]?.clientX ?? null;
@@ -943,7 +918,7 @@ export function Deck({ index }: { index: number }) {
           if (
             target instanceof Element &&
             target.closest(
-              ".literary-body, .literary-media-column, .literary-cover-description"
+              ".literary-body, .literary-points, .literary-cover-description"
             )
           ) {
             return;
