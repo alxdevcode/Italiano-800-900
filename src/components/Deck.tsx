@@ -7,7 +7,7 @@ function SlideView({ s, i }: { s: Slide; i: number }) {
   const d = (n: number) => ({ animationDelay: `${150 + n * 120}ms` });
   if (s.cover) {
     return (
-      <section className="relative h-full w-full overflow-hidden">
+      <section className="relative min-h-[calc(100vh-11rem)] w-full overflow-hidden">
         {s.image && <img src={s.image} alt="" className="reveal-img absolute inset-0 h-full w-full object-cover" />}
         <div className="veil absolute inset-0" />
         <div className="relative z-10 flex h-full max-w-5xl flex-col justify-end px-6 pb-24 md:px-16 md:pb-32">
@@ -21,39 +21,37 @@ function SlideView({ s, i }: { s: Slide; i: number }) {
     );
   }
   return (
-    <section className={`grid h-full w-full ${s.image ? "md:grid-cols-[1.1fr_0.9fr]" : ""}`}>
-      <div className="flex min-h-0 flex-col justify-start overflow-y-auto overscroll-contain px-6 pb-32 pt-24 md:px-16 md:pt-28">
-        <div className="max-w-2xl py-8">
-          <p className="kicker reveal" style={d(0)}>{String(i).padStart(2, "0")} · {s.chapter}</p>
-          <h2 className="reveal mt-4 font-serif text-5xl leading-[0.95] md:text-7xl" style={d(1)}>{s.title}</h2>
-          {s.subtitle && <p className="reveal mt-3 font-serif text-xl italic text-primary md:text-2xl" style={d(2)}>{s.subtitle}</p>}
-          <div className="mt-8 space-y-4 text-[0.98rem] leading-relaxed text-muted-foreground md:text-lg">
-            {s.body.map((b, k) => (
-              <p key={k} className={`reveal ${k === 0 ? "dropcap text-foreground" : ""}`} style={d(3 + k)}>{b}</p>
-            ))}
-          </div>
-          {s.points && (
-            <ul className="mt-8 divide-y divide-border border-y border-border">
-              {s.points.map((p, k) => (
-                <li key={p} className="reveal flex gap-4 py-3 text-sm md:text-base" style={d(4 + k)}>
-                  <span className="font-serif text-primary">{String(k + 1).padStart(2, "0")}</span>{p}
-                </li>
+    <section className={`mx-auto w-full max-w-[1500px] px-6 pb-16 pt-8 md:px-14 lg:px-20 ${s.image ? "grid items-start gap-12 lg:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]" : ""}`}>
+      <div className="min-w-0">
+        <div className="max-w-[1100px]">
+          <p className="kicker reveal" style={d(0)}>{String(i + 1).padStart(2, "0")} · {s.chapter}</p>
+          <h2 className="reveal mt-5 font-serif text-4xl leading-[1.06] sm:text-5xl lg:text-6xl" style={d(1)}>{s.title}</h2>
+          {s.subtitle && <p className="reveal mt-4 font-serif text-xl italic text-primary md:text-2xl" style={d(2)}>{s.subtitle}</p>}
+          <div className={`mt-9 gap-x-12 gap-y-8 ${!s.image && (s.points?.length ?? 0) > 0 ? "lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.85fr)]" : ""}`}>
+            <div className="min-w-0 space-y-5 text-base leading-[1.8] text-muted-foreground md:text-[1.08rem]">
+              {s.body.map((b, k) => (
+                <p key={k} className={`reveal ${k === 0 ? "dropcap text-foreground" : ""}`} style={d(3 + k)}>{b}</p>
               ))}
-            </ul>
-          )}
+            </div>
+            {s.points && (
+              <ul className="mt-8 min-w-0 self-start divide-y divide-border border-y border-border lg:mt-0">
+                {s.points.map((p, k) => (
+                  <li key={k} className="reveal flex gap-4 py-4 text-sm leading-relaxed md:text-base" style={d(4 + k)}>
+                    <span className="shrink-0 font-serif text-primary">{String(k + 1).padStart(2, "0")}</span><span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           {s.quote && (
-            <blockquote className="reveal mt-10 border-l-2 border-accent pl-6" style={d(6)}>
-              <p className="font-serif text-2xl italic leading-snug md:text-3xl">«{s.quote.text}»</p>
-              <footer className="mt-3 text-xs uppercase tracking-[0.25em] text-muted-foreground">{s.quote.by}</footer>
+            <blockquote className="reveal mt-12 max-w-4xl border-l-2 border-accent pl-6" style={d(6)}>
+              <p className="font-serif text-xl italic leading-snug md:text-3xl">«{s.quote.text}»</p>
+              <footer className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">{s.quote.by}</footer>
             </blockquote>
           )}
         </div>
       </div>
-      {s.image && (
-        <div className="relative hidden overflow-hidden md:block">
-          <img src={s.image} alt={s.title} className="reveal-img h-full w-full object-cover" loading="lazy" />
-        </div>
-      )}
+      {s.image && <div className="relative mt-8 overflow-hidden rounded-sm lg:sticky lg:top-4 lg:mt-0"><img src={s.image} alt={s.title} className="reveal-img h-auto max-h-[65vh] w-full object-cover" loading="lazy" /></div>}
     </section>
   );
 }
@@ -61,7 +59,6 @@ function SlideView({ s, i }: { s: Slide; i: number }) {
 export function Deck({ index }: { index: number }) {
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
-  const lock = useRef(0);
   const touch = useRef<number | null>(null);
   const total = slides.length;
   const cur = Math.min(Math.max(index, 0), total - 1);
@@ -92,24 +89,10 @@ export function Deck({ index }: { index: number }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [cur, go, total]);
 
-  const onWheel = (e: React.WheelEvent) => {
-    if (menu || Math.abs(e.deltaY) < 30) return;
-    const now = Date.now();
-    if (now - lock.current < 900) return;
-    const el = (e.target as HTMLElement).closest(".overflow-y-auto") as HTMLElement | null;
-    if (el && el.scrollHeight > el.clientHeight + 4) {
-      const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
-      const atTop = el.scrollTop <= 0;
-      if ((e.deltaY > 0 && !atEnd) || (e.deltaY < 0 && !atTop)) return;
-    }
-    lock.current = now;
-    go(cur + (e.deltaY > 0 ? 1 : -1));
-  };
 
   return (
     <div
       className="grain fixed inset-0 bg-background text-foreground"
-      onWheel={onWheel}
       onTouchStart={(e) => (touch.current = e.touches[0]?.clientX ?? null)}
       onTouchEnd={(e) => {
         if (touch.current === null) return;
@@ -118,8 +101,8 @@ export function Deck({ index }: { index: number }) {
         touch.current = null;
       }}
     >
-      <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between px-6 md:h-20 md:px-16">
-        <button onClick={() => go(0)} className="font-serif text-2xl tracking-tight">Il Vero</button>
+      <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-border/50 bg-background/95 px-6 backdrop-blur-xl md:h-20 md:px-16">
+        <button onClick={() => go(0)} className="font-serif text-xl tracking-tight md:text-2xl">Il Vero</button>
         <button
           onClick={() => setMenu((m) => !m)}
           className="rounded-full border border-border px-5 py-2 text-sm backdrop-blur-md transition-colors hover:bg-secondary"
@@ -128,11 +111,11 @@ export function Deck({ index }: { index: number }) {
         </button>
       </header>
 
-      <main key={cur} className="h-full w-full animate-in fade-in duration-700">
+      <main key={cur} className="h-full w-full overflow-y-auto overscroll-contain pt-20 pb-24 animate-in fade-in duration-700" style={{scrollbarGutter:"stable"}}>
         <SlideView s={slide} i={cur} />
       </main>
 
-      <footer className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-6 px-6 pb-6 md:px-16 md:pb-8">
+      <footer className="fixed inset-x-0 bottom-0 z-40 flex h-20 items-center gap-4 border-t border-border/60 bg-background/95 px-6 backdrop-blur-xl md:gap-6 md:px-16">
         <span className="font-serif text-lg tabular-nums">
           {String(cur + 1).padStart(2, "0")}<span className="text-muted-foreground"> / {total}</span>
         </span>
