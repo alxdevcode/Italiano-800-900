@@ -65,6 +65,7 @@ export function Deck({ index }: { index: number }) {
   const touch = useRef<number | null>(null);
   const total = slides.length;
   const cur = Math.min(Math.max(index, 0), total - 1);
+  const slide = slides[cur]!;
 
   const go = useCallback(
     (n: number) => {
@@ -75,7 +76,7 @@ export function Deck({ index }: { index: number }) {
   );
 
   useEffect(() => {
-    document.title = `${cur + 1}/${total} — ${slides[cur].title}`;
+    document.title = `${cur + 1}/${total} — ${slide.title}`;
   }, [cur, total]);
 
   useEffect(() => {
@@ -128,7 +129,7 @@ export function Deck({ index }: { index: number }) {
       </header>
 
       <main key={cur} className="h-full w-full animate-in fade-in duration-700">
-        <SlideView s={slides[cur]} i={cur} />
+        <SlideView s={slide} i={cur} />
       </main>
 
       <footer className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-6 px-6 pb-6 md:px-16 md:pb-8">
