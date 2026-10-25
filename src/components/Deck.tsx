@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -6,268 +7,437 @@ import {
   useState,
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  X,
+} from "lucide-react";
 import { slides, type Slide } from "@/lib/slides";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Page = {
   slide: Slide;
   source: number;
+  cover: boolean;
   paragraphs: string[];
   points?: string[];
   quote?: Slide["quote"];
-  cover: boolean;
 };
 
-function createPages(): Page[] {
+/* =========================================================
+   DATA
+========================================================= */
+
+function buildPages(): Page[] {
   return slides.map((slide, source) => ({
     slide,
     source,
+    cover: Boolean(slide.cover) || source === slides.length - 1,
     paragraphs: slide.body ?? [],
     points: slide.points,
     quote: slide.quote,
-    cover: Boolean(slide.cover) || source === slides.length - 1,
   }));
 }
 
-const deckCSS = `
-  html, body, #root {
+/* =========================================================
+   STYLES
+========================================================= */
+
+const deckStyles = `
+  /* RESET */
+
+  html,
+  body,
+  #root {
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
-    border: 0;
-    border-radius: 0;
   }
 
-  .deck {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden;
-    border: none !important;
-    border-radius: 0 !important;
-    outline: none !important;
-    box-shadow: none !important;
-    background: var(--background);
-    color: var(--foreground);
-  }
-
-  .deck, .deck * {
+  .literary-deck,
+  .literary-deck * {
     box-sizing: border-box;
   }
 
-  .deck-header {
+  .literary-deck {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: hidden;
+
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* HEADER */
+
+  .literary-header {
     position: relative;
-    z-index: 10;
-    flex: 0 0 64px;
+    z-index: 30;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 4.5%;
+
+    flex: 0 0 64px;
+    height: 64px;
+
+    padding: 0 5%;
+
     background: var(--background);
+    border: 0;
   }
 
-  .deck-logo {
+  .literary-logo {
+    padding: 0;
     border: 0;
-    background: none;
-    color: var(--foreground);
+    background: transparent;
+
     font-family: var(--font-serif);
-    font-size: 25px;
+    font-size: 26px;
+    color: var(--foreground);
+
     cursor: pointer;
   }
 
-  .deck-index-button {
+  .literary-index-button {
     padding: 9px 22px;
+
     border: 1px solid var(--border);
     border-radius: 999px;
+
     background: transparent;
     color: var(--foreground);
+
     font-size: 12px;
     cursor: pointer;
+
+    transition: background .2s ease;
   }
 
-  .deck-stage {
+  .literary-index-button:hover {
+    background: var(--secondary);
+  }
+
+  /* MAIN STAGE */
+
+  .literary-stage {
     position: relative;
+
     flex: 1 1 auto;
     min-height: 0;
+
     width: 100%;
     overflow: hidden;
   }
 
-  .deck-footer {
+  .literary-slide {
     position: relative;
-    z-index: 10;
-    flex: 0 0 58px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* FOOTER */
+
+  .literary-footer {
+    position: relative;
+    z-index: 30;
+
     display: flex;
     align-items: center;
     gap: 20px;
-    padding: 0 4.5%;
+
+    flex: 0 0 62px;
+    height: 62px;
+
+    padding: 0 5%;
+
     background: var(--background);
+    border: 0;
   }
 
-  .deck-counter {
+  .literary-counter {
     flex-shrink: 0;
+
     font-family: var(--font-serif);
     font-size: 18px;
     white-space: nowrap;
   }
 
-  .deck-progress {
+  .literary-progress {
     flex: 1;
     height: 1px;
     background: var(--border);
   }
 
-  .deck-progress-fill {
+  .literary-progress-fill {
     height: 100%;
     background: var(--primary);
-    transition: width .4s ease;
+    transition: width .45s ease;
   }
 
-  .deck-navigation {
+  .literary-controls {
     display: flex;
-    gap: 9px;
+    flex-shrink: 0;
+    gap: 10px;
   }
 
-  .deck-arrow {
+  .literary-arrow {
     display: grid;
     place-items: center;
-    width: 39px;
-    height: 39px;
+
+    width: 40px;
+    height: 40px;
+
     border: 1px solid var(--border);
     border-radius: 50%;
+
     background: transparent;
     color: var(--foreground);
+
     cursor: pointer;
+    transition: background .2s ease;
   }
 
-  .deck-arrow:disabled {
+  .literary-arrow:hover:not(:disabled) {
+    background: var(--secondary);
+  }
+
+  .literary-arrow:disabled {
     opacity: .25;
     cursor: not-allowed;
   }
 
-  /* COPERTINA */
+  /* =======================================================
+     FULLSCREEN COVER
+  ======================================================= */
 
-  .deck-cover {
+  .literary-deck.is-cover .literary-stage {
     position: absolute;
     inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    flex: none;
+  }
+
+  .literary-deck.is-cover .literary-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    flex: none;
+    background: transparent !important;
+  }
+
+  .literary-deck.is-cover .literary-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    flex: none;
+    background: transparent !important;
+  }
+
+  .literary-deck.is-cover .literary-logo,
+  .literary-deck.is-cover .literary-counter,
+  .literary-deck.is-cover .literary-arrow {
+    color: #f5ead9;
+  }
+
+  .literary-deck.is-cover .literary-index-button {
+    color: #f5ead9;
+    border-color: rgba(255,255,255,.28);
+  }
+
+  .literary-deck.is-cover .literary-arrow {
+    border-color: rgba(255,255,255,.25);
+  }
+
+  .literary-deck.is-cover .literary-progress {
+    background: rgba(255,255,255,.25);
+  }
+
+  .literary-cover {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
     overflow: hidden;
     background: #100b08;
   }
 
-  .deck-cover-image {
+  .literary-cover-image {
     position: absolute;
     inset: 0;
+
     display: block;
+
     width: 100%;
     height: 100%;
+
+    max-width: none;
+    max-height: none;
+
     object-fit: cover;
     object-position: center;
-    border: none;
-    border-radius: 0;
+
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
-  .deck-cover-overlay {
+  .literary-cover-overlay {
     position: absolute;
     inset: 0;
+
     background:
       linear-gradient(
         90deg,
-        rgba(10,7,5,.88) 0%,
-        rgba(10,7,5,.55) 40%,
+        rgba(10,7,5,.91) 0%,
+        rgba(10,7,5,.72) 28%,
+        rgba(10,7,5,.32) 62%,
         rgba(10,7,5,.08) 100%
       ),
       linear-gradient(
         0deg,
-        rgba(10,7,5,.22),
-        transparent 50%
+        rgba(10,7,5,.48) 0%,
+        transparent 28%,
+        transparent 75%,
+        rgba(10,7,5,.28) 100%
       );
   }
 
-  .deck-cover-content {
+  .literary-cover-content {
     position: relative;
-    z-index: 1;
+    z-index: 2;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
+
     width: min(100%, 1050px);
     height: 100%;
-    padding: 35px 5%;
+
+    padding: 90px 5%;
   }
 
-  .deck-kicker {
+  .literary-kicker {
     margin: 0;
-    color: var(--primary);
+
     font-size: 11px;
     font-weight: 500;
     letter-spacing: .3em;
     text-transform: uppercase;
-  }
 
-  .deck-cover-title {
-    margin: 25px 0 0;
-    font-family: var(--font-serif);
-    font-size: clamp(55px, 6vw, 108px);
-    font-weight: 400;
-    line-height: .99;
-    letter-spacing: -.035em;
-    color: var(--foreground);
-  }
-
-  .deck-cover-subtitle {
-    margin: 26px 0 0;
-    font-family: var(--font-serif);
-    font-size: clamp(23px, 2.3vw, 36px);
-    font-style: italic;
     color: var(--primary);
   }
 
-  .deck-cover-description {
-    max-width: 680px;
+  .literary-cover-title {
+    margin: 25px 0 0;
+
+    font-family: var(--font-serif);
+    font-size: clamp(55px, 6vw, 110px);
+    font-weight: 400;
+    line-height: .99;
+    letter-spacing: -.035em;
+
+    color: #f5ead9;
+  }
+
+  .literary-cover-subtitle {
+    margin: 28px 0 0;
+
+    font-family: var(--font-serif);
+    font-size: clamp(23px, 2.3vw, 37px);
+    font-style: italic;
+
+    color: var(--primary);
+  }
+
+  .literary-cover-description {
+    max-width: 660px;
+    max-height: 35vh;
+
     margin-top: 26px;
-    color: var(--foreground);
+
+    overflow-y: auto;
+    scrollbar-width: thin;
+
+    color: #eee5d8;
     font-size: clamp(13px, 1vw, 16px);
     line-height: 1.75;
   }
 
-  .deck-cover-description p {
-    margin: 0 0 12px;
+  .literary-cover-description p {
+    margin: 0 0 14px;
   }
 
-  /* SLIDE INTERNE */
+  /* =======================================================
+     CONTENT SLIDES
+  ======================================================= */
 
-  .deck-content {
+  .literary-content {
     display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+
+    grid-template-columns:
+      minmax(0, 1.08fr)
+      minmax(0, 1fr);
+
     gap: clamp(30px, 4vw, 76px);
+
     width: 100%;
     height: 100%;
+
     padding: clamp(20px, 3vh, 36px) 5%;
+
     overflow: hidden;
+    background: var(--background);
   }
 
-  .deck-text-column {
+  .literary-text-column {
     display: flex;
     flex-direction: column;
+
     min-width: 0;
     min-height: 0;
   }
 
-  .deck-heading {
+  .literary-heading {
     flex-shrink: 0;
     margin-bottom: 22px;
   }
 
-  .deck-title {
+  .literary-title {
     margin: 12px 0 0;
+
     font-family: var(--font-serif);
     font-size: clamp(37px, 3.7vw, 68px);
     font-weight: 400;
@@ -275,279 +445,331 @@ const deckCSS = `
     letter-spacing: -.025em;
   }
 
-  .deck-subtitle {
+  .literary-subtitle {
     margin: 10px 0 0;
+
     font-family: var(--font-serif);
     font-size: clamp(19px, 1.6vw, 28px);
     font-style: italic;
+
     color: var(--primary);
   }
 
-  .deck-body {
+  .literary-body {
     flex: 1 1 auto;
+
     min-height: 0;
     overflow-y: auto;
+
     padding-right: 12px;
+
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
 
-  .deck-body p {
+  .literary-body p {
     margin: 0 0 19px;
+
     font-size: clamp(13px, .95vw, 16px);
     line-height: 1.75;
+
     color: var(--muted-foreground);
   }
 
-  .deck-body p:first-child {
+  .literary-body p:first-child {
     color: var(--foreground);
   }
 
-  .deck-body p:first-child::first-letter {
+  .literary-body p:first-child::first-letter {
     float: left;
+
     padding-right: .08em;
+
     font-family: var(--font-serif);
     font-size: 3.3em;
     line-height: .85;
+
     color: var(--primary);
   }
 
-  .deck-media-column {
+  /* =======================================================
+     MEDIA COLUMN - REAL 16:9
+  ======================================================= */
+
+  .literary-media-column {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 18px;
+
+    gap: 22px;
+
     min-width: 0;
     min-height: 0;
+
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
 
-  .deck-image {
+  .literary-image {
     display: block;
+
     width: 100%;
     height: auto;
+
     aspect-ratio: 16 / 9;
     flex: 0 0 auto;
+
     object-fit: cover;
     object-position: center;
+
     border: 0 !important;
     border-radius: 0 !important;
-    outline: none !important;
+    outline: 0 !important;
     box-shadow: none !important;
+
     background: transparent;
   }
 
-  .deck-points {
+  .literary-points {
     width: 100%;
     flex: 0 0 auto;
+
+    padding: 0;
+    margin: 0;
+
     background: transparent;
+    border: none;
+    box-shadow: none;
   }
 
-  .deck-points-label {
+  .literary-points-label {
     margin: 0 0 10px;
-    color: var(--primary);
+
     font-size: 10px;
     letter-spacing: .24em;
     text-transform: uppercase;
+
+    color: var(--primary);
   }
 
-  .deck-point {
+  .literary-point {
     display: flex;
     align-items: baseline;
+
     gap: 14px;
     padding: 8px 0;
+
     font-size: clamp(12px, .86vw, 14px);
     line-height: 1.55;
   }
 
-  .deck-point-number {
+  .literary-point-number {
     flex-shrink: 0;
+
     font-family: var(--font-serif);
     color: var(--primary);
   }
 
-  .deck-quote {
+  .literary-quote {
     margin: 10px 0 0;
     padding-left: 18px;
+
     border-left: 2px solid var(--primary);
   }
 
-  .deck-quote-text {
+  .literary-quote-text {
     font-family: var(--font-serif);
     font-size: clamp(19px, 1.7vw, 28px);
     font-style: italic;
     line-height: 1.3;
   }
 
-  .deck-quote-author {
+  .literary-quote-author {
     margin-top: 12px;
     font-size: 12px;
     color: var(--muted-foreground);
   }
 
-  /* INDICE */
+  /* =======================================================
+     INDEX
+  ======================================================= */
 
-  .deck-index {
-    position: absolute;
-    z-index: 30;
+  .literary-index {
+    position: fixed;
     inset: 0;
+    z-index: 100;
+
     overflow-y: auto;
+
+    padding: 90px 6% 45px;
+
     background: var(--popover);
-    padding: 35px 5%;
   }
 
-  .deck-index-top {
+  .literary-index-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 28px;
+    margin-bottom: 35px;
   }
 
-  .deck-index-title {
+  .literary-index-title {
     font-family: var(--font-serif);
-    font-size: 55px;
+    font-size: 58px;
   }
 
-  .deck-index-grid {
+  .literary-index-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0 45px;
   }
 
-  .deck-index-item {
+  .literary-index-item {
     display: flex;
     align-items: baseline;
     gap: 16px;
+
     width: 100%;
     padding: 14px 0;
+
     border: 0;
     border-bottom: 1px solid var(--border);
+
     background: transparent;
     color: var(--foreground);
+
     text-align: left;
     cursor: pointer;
   }
 
-  .deck-index-item:hover,
-  .deck-index-item.active {
+  .literary-index-item:hover,
+  .literary-index-item.active {
     color: var(--primary);
   }
 
-  .deck-index-item span:last-child {
+  .literary-index-item span:last-child {
     font-family: var(--font-serif);
     font-size: 24px;
   }
 
-  /* RESPONSIVE */
+  /* =======================================================
+     RESPONSIVE
+  ======================================================= */
 
   @media (max-width: 900px) {
-    .deck-header {
+    .literary-header {
+      height: 54px;
       flex-basis: 54px;
-      padding: 0 5%;
     }
 
-    .deck-footer {
+    .literary-footer {
+      height: 54px;
       flex-basis: 54px;
-      padding: 0 5%;
       gap: 12px;
     }
 
-    .deck-content {
+    .literary-content {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: minmax(0, 1fr) auto;
+
       gap: 14px;
       padding: 16px 5%;
     }
 
-    .deck-heading {
+    .literary-heading {
       margin-bottom: 12px;
     }
 
-    .deck-title {
+    .literary-title {
       font-size: clamp(34px, 6vw, 54px);
     }
 
-    .deck-body p {
+    .literary-body p {
       font-size: 13px;
       line-height: 1.6;
     }
 
-    .deck-media-column {
+    .literary-media-column {
       max-height: 34vh;
       justify-content: flex-start;
+      gap: 12px;
     }
 
-    .deck-image {
+    .literary-image {
       width: min(100%, 560px);
+      aspect-ratio: 16 / 9;
     }
 
-    .deck-cover-content {
-      padding: 24px 6%;
+    .literary-cover-content {
+      padding: 90px 6%;
     }
 
-    .deck-cover-title {
+    .literary-cover-title {
       font-size: clamp(47px, 9vw, 85px);
     }
 
-    .deck-index-grid {
+    .literary-index-grid {
       grid-template-columns: 1fr;
     }
   }
 
   @media (max-height: 700px) and (min-width: 901px) {
-    .deck-content {
+    .literary-content {
       padding-top: 14px;
       padding-bottom: 14px;
     }
 
-    .deck-heading {
+    .literary-heading {
       margin-bottom: 12px;
     }
 
-    .deck-title {
+    .literary-title {
       font-size: clamp(34px, 3vw, 55px);
     }
 
-    .deck-media-column {
+    .literary-media-column {
       justify-content: flex-start;
     }
   }
 `;
 
+/* =========================================================
+   COVER COMPONENT
+========================================================= */
+
 function Cover({ page }: { page: Page }) {
   const { slide } = page;
 
   return (
-    <section className="deck-cover">
+    <section className="literary-cover">
       {slide.image && (
         <img
           src={slide.image}
           alt={slide.title}
-          className="deck-cover-image"
+          className="literary-cover-image"
         />
       )}
 
-      <div className="deck-cover-overlay" />
+      <div className="literary-cover-overlay" />
 
-      <div className="deck-cover-content">
-        <p className="deck-kicker">
+      <div className="literary-cover-content">
+        <p className="literary-kicker">
           {slide.chapter}
         </p>
 
-        <h1 className="deck-cover-title">
+        <h1 className="literary-cover-title">
           {slide.title}
         </h1>
 
         {slide.subtitle && (
-          <p className="deck-cover-subtitle">
+          <p className="literary-cover-subtitle">
             {slide.subtitle}
           </p>
         )}
 
         {page.paragraphs.length > 0 && (
-          <div className="deck-cover-description">
+          <div className="literary-cover-description">
             {page.paragraphs.map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}
@@ -558,57 +780,65 @@ function Cover({ page }: { page: Page }) {
   );
 }
 
+/* =========================================================
+   CONTENT COMPONENT
+========================================================= */
+
 function ContentSlide({ page }: { page: Page }) {
   const { slide } = page;
 
   return (
-    <section className="deck-content">
-      <div className="deck-text-column">
-        <div className="deck-heading">
-          <p className="deck-kicker">
+    <section className="literary-content">
+      <div className="literary-text-column">
+        <div className="literary-heading">
+          <p className="literary-kicker">
             {String(page.source + 1).padStart(2, "0")}
             {" · "}
             {slide.chapter}
           </p>
 
-          <h2 className="deck-title">
+          <h2 className="literary-title">
             {slide.title}
           </h2>
 
           {slide.subtitle && (
-            <p className="deck-subtitle">
+            <p className="literary-subtitle">
               {slide.subtitle}
             </p>
           )}
         </div>
 
-        <div className="deck-body">
+        <div className="literary-body">
           {page.paragraphs.map((paragraph, i) => (
             <p key={i}>{paragraph}</p>
           ))}
         </div>
       </div>
 
-      <aside className="deck-media-column">
+      <aside className="literary-media-column">
         {slide.image && (
           <img
             src={slide.image}
             alt={slide.title}
-            className="deck-image"
+            className="literary-image"
           />
         )}
 
         {Boolean(page.points?.length) && (
-          <div className="deck-points">
-            <p className="deck-points-label">
+          <div className="literary-points">
+            <p className="literary-points-label">
               Concetti fondamentali
             </p>
 
             {page.points!.map((point, i) => (
-              <div className="deck-point" key={i}>
-                <span className="deck-point-number">
+              <div
+                className="literary-point"
+                key={i}
+              >
+                <span className="literary-point-number">
                   {String(i + 1).padStart(2, "0")}
                 </span>
+
                 <span>{point}</span>
               </div>
             ))}
@@ -616,11 +846,12 @@ function ContentSlide({ page }: { page: Page }) {
         )}
 
         {page.quote && (
-          <blockquote className="deck-quote">
-            <p className="deck-quote-text">
+          <blockquote className="literary-quote">
+            <p className="literary-quote-text">
               «{page.quote.text}»
             </p>
-            <footer className="deck-quote-author">
+
+            <footer className="literary-quote-author">
               {page.quote.by}
             </footer>
           </blockquote>
@@ -630,9 +861,14 @@ function ContentSlide({ page }: { page: Page }) {
   );
 }
 
+/* =========================================================
+   MAIN DECK
+========================================================= */
+
 export function Deck({ index }: { index: number }) {
   const navigate = useNavigate();
-  const pages = useMemo(() => createPages(), []);
+
+  const pages = useMemo(() => buildPages(), []);
   const total = pages.length;
 
   const current = Math.max(
@@ -696,10 +932,12 @@ export function Deck({ index }: { index: number }) {
       }
 
       if (event.key === "Home") {
+        event.preventDefault();
         go(0);
       }
 
       if (event.key === "End") {
+        event.preventDefault();
         go(total - 1);
       }
     };
@@ -713,10 +951,12 @@ export function Deck({ index }: { index: number }) {
 
   return (
     <>
-      <style>{deckCSS}</style>
+      <style>{deckStyles}</style>
 
       <div
-        className="deck"
+        className={`literary-deck ${
+          page.cover ? "is-cover" : ""
+        }`}
         onTouchStart={(event) => {
           touchStart.current =
             event.touches[0]?.clientX ?? null;
@@ -747,7 +987,7 @@ export function Deck({ index }: { index: number }) {
           if (
             target instanceof Element &&
             target.closest(
-              ".deck-body, .deck-media-column"
+              ".literary-body, .literary-media-column, .literary-cover-description"
             )
           ) {
             return;
@@ -766,12 +1006,9 @@ export function Deck({ index }: { index: number }) {
           go(current + (event.deltaY > 0 ? 1 : -1));
         }}
       >
-        <header
-  className="deck-header"
-  style={{ background: "#b91c1c" }}
->
+        <header className="literary-header">
           <button
-            className="deck-logo"
+            className="literary-logo"
             type="button"
             onClick={() => go(0)}
           >
@@ -779,7 +1016,7 @@ export function Deck({ index }: { index: number }) {
           </button>
 
           <button
-            className="deck-index-button"
+            className="literary-index-button"
             type="button"
             onClick={() => setIndexOpen(!indexOpen)}
           >
@@ -787,10 +1024,10 @@ export function Deck({ index }: { index: number }) {
           </button>
         </header>
 
-        <main className="deck-stage">
+        <main className="literary-stage">
           <div
             key={current}
-            className="h-full w-full"
+            className="literary-slide"
           >
             {page.cover ? (
               <Cover page={page} />
@@ -798,67 +1035,27 @@ export function Deck({ index }: { index: number }) {
               <ContentSlide page={page} />
             )}
           </div>
-
-          {indexOpen && (
-            <div className="deck-index">
-              <div className="deck-index-top">
-                <h2 className="deck-index-title">
-                  Indice
-                </h2>
-
-                <button
-                  type="button"
-                  onClick={() => setIndexOpen(false)}
-                  aria-label="Chiudi indice"
-                >
-                  <X size={25} />
-                </button>
-              </div>
-
-              <div className="deck-index-grid">
-                {pages.map((item, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={`deck-index-item ${
-                      i === current ? "active" : ""
-                    }`}
-                    onClick={() => {
-                      setIndexOpen(false);
-                      go(i);
-                    }}
-                  >
-                    <span className="text-xs text-muted-foreground">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-
-                    <span>{item.slide.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </main>
 
-        <footer className="deck-footer">
-          <span className="deck-counter">
+        <footer className="literary-footer">
+          <span className="literary-counter">
             {String(current + 1).padStart(2, "0")}
             {" / "}
             {total}
           </span>
 
-          <div className="deck-progress">
+          <div className="literary-progress">
             <div
-              className="deck-progress-fill"
+              className="literary-progress-fill"
               style={{
                 width: `${((current + 1) / total) * 100}%`,
               }}
             />
           </div>
 
-          <div className="deck-navigation">
+          <div className="literary-controls">
             <button
-              className="deck-arrow"
+              className="literary-arrow"
               type="button"
               aria-label="Slide precedente"
               disabled={current === 0}
@@ -868,7 +1065,7 @@ export function Deck({ index }: { index: number }) {
             </button>
 
             <button
-              className="deck-arrow"
+              className="literary-arrow"
               type="button"
               aria-label="Slide successiva"
               disabled={current === total - 1}
@@ -878,6 +1075,46 @@ export function Deck({ index }: { index: number }) {
             </button>
           </div>
         </footer>
+
+        {indexOpen && (
+          <nav className="literary-index">
+            <div className="literary-index-top">
+              <h2 className="literary-index-title">
+                Indice
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setIndexOpen(false)}
+                aria-label="Chiudi indice"
+              >
+                <X size={25} />
+              </button>
+            </div>
+
+            <div className="literary-index-grid">
+              {pages.map((item, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`literary-index-item ${
+                    i === current ? "active" : ""
+                  }`}
+                  onClick={() => {
+                    setIndexOpen(false);
+                    go(i);
+                  }}
+                >
+                  <span className="text-xs text-muted-foreground">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+
+                  <span>{item.slide.title}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+        )}
       </div>
     </>
   );
