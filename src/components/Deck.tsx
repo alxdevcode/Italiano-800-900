@@ -110,10 +110,10 @@ export function Deck({ index }: { index: number }) {
     <div
       className="grain fixed inset-0 bg-background text-foreground"
       onWheel={onWheel}
-      onTouchStart={(e) => (touch.current = e.touches[0].clientX)}
+      onTouchStart={(e) => (touch.current = e.touches[0]?.clientX ?? null)}
       onTouchEnd={(e) => {
         if (touch.current === null) return;
-        const dx = e.changedTouches[0].clientX - touch.current;
+        const dx = (e.changedTouches[0]?.clientX ?? touch.current) - touch.current;
         if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1));
         touch.current = null;
       }}
