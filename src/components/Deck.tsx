@@ -22,8 +22,8 @@ function SlideView({ s, i }: { s: Slide; i: number }) {
   }
   return (
     <section className={`grid h-full w-full ${s.image ? "md:grid-cols-[1.1fr_0.9fr]" : ""}`}>
-      <div className="flex flex-col justify-center overflow-y-auto px-6 pb-28 pt-24 md:px-16">
-        <div className="max-w-2xl">
+      <div className="flex min-h-0 flex-col justify-start overflow-y-auto overscroll-contain px-6 pb-32 pt-24 md:px-16 md:pt-28">
+        <div className="max-w-2xl py-8">
           <p className="kicker reveal" style={d(0)}>{String(i).padStart(2, "0")} · {s.chapter}</p>
           <h2 className="reveal mt-4 font-serif text-5xl leading-[0.95] md:text-7xl" style={d(1)}>{s.title}</h2>
           {s.subtitle && <p className="reveal mt-3 font-serif text-xl italic text-primary md:text-2xl" style={d(2)}>{s.subtitle}</p>}
