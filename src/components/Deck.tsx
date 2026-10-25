@@ -5,64 +5,55 @@ import { slides, type Slide } from "@/lib/slides";
 
 type Page = { slide: Slide; source: number; part: number; count: number; paragraphs: string[]; points?: string[]; quote?: Slide["quote"]; cover: boolean };
 
-// Content is paginated instead of being forced into a fixed-height slide.
-// Paragraphs are never shortened or hidden behind navigation controls.
+// Exactly 24 pages: the 21 original chapters, plus one additional page
+// for each of the three longest Verga analyses.
+const SPLIT_TITLES = new Set(["Rosso Malpelo", "I Malavoglia", "Mastro-don Gesualdo"]);
 function makePages(): Page[] {
   return slides.flatMap((slide, source) => {
-    if (slide.cover) return [{ slide, source, part: 0, count: 1, paragraphs: slide.body, cover: true }];
-    const chunks: { paragraphs: string[]; points?: string[]; quote?: Slide["quote"] }[] = [];
-    const body = slide.body;
-    for (let i = 0; i < body.length; i += 2) {
-      const first = body[i] ?? "";
-      const second = body[i + 1];
-      // Long paragraphs get a page of their own for comfortable reading.
-      if (second && first.length + second.length <= 830) chunks.push({ paragraphs: [first, second] });
-      else {
-        chunks.push({ paragraphs: [first] });
-        if (second) chunks.push({ paragraphs: [second] });
-      }
-    }
-    if (slide.points?.length) chunks.push({ paragraphs: [], points: slide.points });
-    if (slide.quote) chunks.push({ paragraphs: [], quote: slide.quote });
-    if (!chunks.length) chunks.push({ paragraphs: [] });
-    return chunks.map((chunk, part) => ({ slide, source, part, count: chunks.length, cover: false, ...chunk }));
+    if (!SPLIT_TITLES.has(slide.title)) return [{ slide, source, part: 0, count: 1, paragraphs: slide.body, points: slide.points, quote: slide.quote, cover: !!slide.cover }];
+    const cut = Math.ceil(slide.body.length / 2);
+    return [
+      { slide, source, part: 0, count: 2, paragraphs: slide.body.slice(0,cut), cover: false },
+      { slide, source, part: 1, count: 2, paragraphs: slide.body.slice(cut), points: slide.points, quote: slide.quote, cover: false },
+    ];
   });
 }
 
-function PageView({ page, number }: { page: Page; number: number }) {
-  const { slide: s, cover } = page;
-  if (cover) return (
+function PageView({ page }: { page: Page }) {
+  const s = page.slide;
+  if (page.cover) return (
     <section className="relative h-full w-full overflow-hidden">
-      {s.image && <img src={s.image} alt="" className="reveal-img absolute inset-0 h-full w-full object-cover" />}
+      {s.image && <img src={s.image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
       <div className="veil absolute inset-0" />
-      <div className="relative z-10 flex h-full max-w-5xl flex-col justify-center px-7 py-8 md:px-16">
-        <p className="kicker reveal">{s.chapter}</p>
-        <h1 className="reveal mt-5 font-serif text-[clamp(3rem,6.2vw,6.4rem)] leading-[0.99]">{s.title}</h1>
-        {s.subtitle && <p className="reveal mt-6 font-serif text-xl italic text-primary md:text-3xl">{s.subtitle}</p>}
-        {page.paragraphs.map((b,k) => <p key={k} className="reveal mt-7 max-w-xl text-sm leading-relaxed text-foreground/85 md:text-lg">{b}</p>)}
+      <div className="relative z-10 flex h-full max-w-5xl flex-col justify-center px-8 md:px-16">
+        <p className="kicker">{s.chapter}</p>
+        <h1 className="mt-5 font-serif text-[clamp(3rem,6vw,6rem)] leading-none">{s.title}</h1>
+        {s.subtitle && <p className="mt-5 font-serif text-xl italic text-primary md:text-3xl">{s.subtitle}</p>}
+        {page.paragraphs.map((b,k)=><p key={k} className="mt-6 max-w-xl text-base leading-relaxed text-foreground/90">{b}</p>)}
       </div>
     </section>
   );
-
-  const showImage = Boolean(s.image) && page.part === 0;
-  const isPoints = Boolean(page.points);
-  const isQuote = Boolean(page.quote);
+  const showImage = !!s.image && page.part === 0;
   return (
-    <section className="mx-auto flex h-full w-full max-w-[1440px] flex-col justify-center px-7 py-5 md:px-14 lg:px-20">
-      <div className="mb-5 shrink-0">
-        <p className="kicker reveal">{String(page.source + 1).padStart(2,"0")} · {s.chapter} {page.count > 1 ? ` / ${page.part + 1} di ${page.count}` : ""}</p>
-        <h2 className="reveal mt-3 font-serif text-[clamp(2.2rem,4vw,4.3rem)] leading-[1.06]">{s.title}</h2>
-        {s.subtitle && <p className="reveal mt-2 font-serif text-lg italic text-primary md:text-2xl">{s.subtitle}</p>}
+    <section className="mx-auto flex h-full w-full max-w-[1550px] flex-col px-8 py-5 md:px-12 lg:px-16">
+      <div className="mb-4 shrink-0">
+        <p className="kicker">{String(page.source+1).padStart(2,"0")} · {s.chapter}{page.count>1 ? ` · Parte ${page.part+1}/2` : ""}</p>
+        <h2 className="mt-2 font-serif text-[clamp(2.2rem,3.4vw,3.8rem)] leading-[1.06]">{s.title}</h2>
+        {s.subtitle && <p className="mt-1 font-serif text-lg italic text-primary md:text-xl">{s.subtitle}</p>}
       </div>
-      <div className={`min-h-0 w-full ${showImage ? "grid items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-14" : ""}`}>
-        <div className="min-w-0 max-w-[920px] space-y-5 text-[clamp(0.94rem,1.25vw,1.17rem)] leading-[1.7] text-muted-foreground">
-          {page.paragraphs.map((b,k) => <p key={k} className={`reveal ${k === 0 ? "dropcap text-foreground" : ""}`}>{b}</p>)}
-          {isPoints && <div className="grid gap-x-10 border-t border-border sm:grid-cols-2">{page.points!.map((p,k) => <div key={k} className="reveal flex gap-4 border-b border-border py-4 text-[clamp(0.9rem,1.1vw,1.1rem)]"><span className="font-serif text-primary">{String(k+1).padStart(2,"0")}</span><span>{p}</span></div>)}</div>}
-          {isQuote && <blockquote className="reveal max-w-4xl border-l-2 border-primary pl-6"><p className="font-serif text-[clamp(1.4rem,2.4vw,2.6rem)] italic leading-snug text-foreground">«{page.quote!.text}»</p><footer className="mt-5 text-xs uppercase tracking-widest">{page.quote!.by}</footer></blockquote>}
+      <div className="grid min-h-0 flex-1 gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,0.9fr)] lg:gap-12">
+        <div className="flex min-h-0 flex-col justify-center gap-4">
+          <div className="space-y-4 text-[clamp(0.86rem,1.05vw,1.02rem)] leading-[1.58] text-muted-foreground">
+            {page.paragraphs.map((b,k)=><p key={k} className={k===0?"dropcap text-foreground":""}>{b}</p>)}
+          </div>
         </div>
-        {showImage && <div className="hidden overflow-hidden rounded-sm lg:block"><img src={s.image} alt={s.title} className="reveal-img aspect-[5/4] w-full object-cover" /></div>}
+        <aside className="flex min-h-0 flex-col justify-center gap-4">
+          {showImage && <img src={s.image} alt={s.title} className="max-h-[31vh] w-full rounded-sm object-cover" />}
+          {page.points && <div className="border-t border-border">{page.points.map((point,k)=><div key={k} className="flex gap-3 border-b border-border py-2.5 text-[clamp(0.82rem,0.96vw,0.96rem)] leading-snug"><span className="font-serif text-primary">{String(k+1).padStart(2,"0")}</span><span>{point}</span></div>)}</div>}
+          {page.quote && <blockquote className="border-l-2 border-primary pl-4"><p className="font-serif text-[clamp(1.1rem,1.55vw,1.6rem)] italic leading-snug">«{page.quote.text}»</p><footer className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">{page.quote.by}</footer></blockquote>}
+          {!showImage && !page.points && !page.quote && <div className="hidden border-l border-primary/40 pl-6 font-serif text-2xl italic text-primary/70 lg:block">{s.subtitle || s.chapter}</div>}
+        </aside>
       </div>
-      {page.count > 1 && <p className="mt-5 shrink-0 text-xs uppercase tracking-[0.2em] text-primary/80">{page.part + 1 === page.count ? "Fine del capitolo" : "Continua nella schermata successiva →"}</p>}
     </section>
   );
 }
@@ -101,7 +92,7 @@ export function Deck({ index }: { index: number }) {
       <button onClick={()=>go(0)} className="font-serif text-xl tracking-tight md:text-2xl">Il Vero</button>
       <button onClick={()=>setMenu(v=>!v)} className="rounded-full border border-border px-5 py-2 text-sm transition hover:bg-secondary">{menu?"Chiudi":"Indice"}</button>
     </header>
-    <main key={cur} className="min-h-0 flex-1 overflow-hidden animate-in fade-in duration-500"><PageView page={page} number={cur}/></main>
+    <main key={cur} className="min-h-0 flex-1 overflow-hidden animate-in fade-in duration-500"><PageView page={page}/></main>
     <footer className="relative z-40 flex h-[72px] shrink-0 items-center gap-4 border-t border-border/60 bg-background/95 px-6 md:px-14">
       <span className="font-serif text-base tabular-nums md:text-lg">{String(cur+1).padStart(2,"0")}<span className="text-muted-foreground"> / {total}</span></span>
       <div className="h-px flex-1 bg-border"><div className="h-px bg-primary transition-all duration-500" style={{width:`${(cur+1)/total*100}%`}} /></div>
