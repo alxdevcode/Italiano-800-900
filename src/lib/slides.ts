@@ -46,6 +46,7 @@ export const slides: Slide[] = [
       "L’evoluzionismo mette in discussione l’idea di una natura immutabile e influenza profondamente la cultura ottocentesca. Non significa però che sopravviva sempre il più forte: ciò che conta è l’adattamento a condizioni ambientali specifiche. Le teorie sociali che giustificano disuguaglianze e competizione usando in modo improprio concetti biologici sono generalmente indicate come darwinismo sociale e non coincidono con la teoria scientifica di Darwin.",
       "In letteratura cresce l’interesse per il rapporto tra individuo, ereditarietà e ambiente. Zola cercherà di rappresentare il comportamento umano come condizionato da questi fattori; Verga descriverà invece la lotta per la sopravvivenza sociale e il destino di chi viene travolto dai cambiamenti economici, senza trasformare i suoi romanzi in dimostrazioni biologiche.",
     ],
+    image: positivismo,
   },
   {
     chapter: "Francia",
@@ -80,6 +81,7 @@ export const slides: Slide[] = [
       "I fratelli Edmond e Jules de Goncourt contribuiscono a questa trasformazione, rivendicando l’attenzione per i ceti fino ad allora esclusi dalla narrativa più prestigiosa. Émile Zola sviluppa poi il progetto del romanzo sperimentale, esposto nel saggio del 1880: prendendo a modello il metodo del fisiologo Claude Bernard, immagina lo scrittore come un osservatore che studia l’effetto di ereditarietà e ambiente sui personaggi.",
       "La letteratura come scienza non significa che un romanzo sia davvero un esperimento di laboratorio. È piuttosto un ideale di documentazione, analisi delle cause e rappresentazione rigorosa dei comportamenti umani. Il Naturalismo conserva inoltre una forte attenzione sociale: rendere visibili i problemi della società può contribuire a comprenderli e discuterli.",
     ],
+    image: positivismo,
   },
   {
     chapter: "Francia",
@@ -96,6 +98,7 @@ export const slides: Slide[] = [
       "Attenzione a operai, prostitute, alcolizzati, emarginati",
       "Fiducia che conoscere i mali sociali serva a correggerli",
     ],
+    image: positivismo,
   },
   {
     chapter: "Francia",
@@ -107,6 +110,7 @@ export const slides: Slide[] = [
       "Fra i titoli più importanti troviamo L’Assommoir, dedicato alla miseria e all’alcolismo; Nanà, sul mondo della prostituzione e dell’alta società; La bestia umana, che intreccia violenza e modernità; e Germinale, ambientato nelle miniere. Zola fu anche un intellettuale impegnato: nel 1898 intervenne pubblicamente nell’affare Dreyfus con il celebre J’accuse…!",
     ],
     quote: { text: "J'accuse…!", by: "Zola in difesa di Dreyfus, 1898" },
+    image: positivismo,
   },
   {
     chapter: "Francia",
@@ -129,6 +133,7 @@ export const slides: Slide[] = [
       "Naturalismo e Verismo condividono l’interesse per i fatti, gli ambienti e le classi popolari. Tuttavia, mentre Zola attribuisce alla letteratura anche una funzione di denuncia e conserva una certa fiducia nel cambiamento, Verga rappresenta spesso una realtà dominata da necessità economiche e rapporti di forza, senza proporre facili soluzioni o interventi moralistici del narratore.",
     ],
     points: ["Teorico: Luigi Capuana", "Maestro: Giovanni Verga", "Continuatore: Federico De Roberto"],
+    image: positivismo,
   },
   {
     chapter: "Italia",
@@ -140,6 +145,7 @@ export const slides: Slide[] = [
       "Capuana sostiene che l’autore debba costruire personaggi e situazioni così coerenti da far apparire l’opera autonoma, come se si fosse creata da sé. Con Verga condivide l’attenzione alla tecnica narrativa, ma conserva un interesse particolarmente forte per i problemi psicologici e per la riflessione teorica sul romanzo.",
     ],
     points: ["Giacinta (1879)", "Il marchese di Roccaverdina (1901)", "Studi sulla letteratura contemporanea"],
+    image: malavoglia,
   },
   {
     chapter: "Italia",
@@ -150,6 +156,7 @@ export const slides: Slide[] = [
       "Il cosiddetto ciclo degli Uzeda comprende L’Illusione (1891), I Viceré (1894) e L’Imperio, pubblicato postumo nel 1929. Nei Viceré, le vicende della famiglia attraversano il passaggio dal dominio borbonico all’Italia unita: matrimoni, eredità, rivalità e ambizioni mostrano personaggi pronti a modificare le proprie alleanze pur di conservare privilegi e influenza.",
       "Consalvo Uzeda rappresenta in modo emblematico questa capacità di adattamento: utilizza le nuove istituzioni politiche per proseguire il potere della propria famiglia. Il romanzo mette in discussione l’idea che l’Unità abbia automaticamente rinnovato la società. Il trasformismo politico e la continuità degli interessi diventano il centro di una critica severa alle élite.",
     ],
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -160,6 +167,7 @@ export const slides: Slide[] = [
       "La poetica verista di Verga si fonda sull’impersonalità: il narratore non deve giudicare dall’alto, ma lasciare che vicende e personaggi sembrino parlare da soli. Attraverso la regressione assume il punto di vista della comunità rappresentata; con il discorso indiretto libero può far emergere pensieri e parole dei personaggi senza introdurli sempre esplicitamente.",
       "Al centro della sua visione si trova una concezione pessimistica della lotta per la vita. L’ideale dell’ostrica esprime il legame degli umili con famiglia, casa e tradizioni: chi si stacca dal proprio ambiente rischia di essere travolto. Nel Ciclo dei vinti Verga vuole mostrare gli effetti dell’ambizione e del progresso a diversi livelli sociali; porterà a termine soltanto I Malavoglia e Mastro-don Gesualdo.",
     ],
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -170,6 +178,7 @@ export const slides: Slide[] = [
       "Janu muore dopo una caduta mentre lavora, lasciando Nedda incinta. La ragazza affronta il giudizio della comunità e partorisce una bambina che, debole e denutrita, muore poco dopo. La vicenda mette in evidenza la vulnerabilità delle donne povere, l’assenza di protezione sociale e il peso delle convenzioni morali.",
       "Nedda anticipa i temi del Verismo perché porta in primo piano la Sicilia rurale, la fatica e la sofferenza degli umili. Non è però ancora un’opera pienamente verista: il narratore interviene con partecipazione sentimentale e commenti compassionevoli, mentre nelle novelle successive Verga cercherà di nascondere maggiormente la propria voce.",
     ],
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -180,6 +189,7 @@ export const slides: Slide[] = [
       "La ragazza comprende di non avere una vera vocazione religiosa, ma le pressioni familiari e le convenzioni sociali le impediscono di scegliere liberamente. Nino finirà per sposare la sorellastra Giuditta, mentre Maria è costretta a tornare in convento e a prendere i voti. La sofferenza la conduce progressivamente alla perdita dell’equilibrio mentale e alla morte.",
       "La capinera del titolo è un uccello chiuso in gabbia: rappresenta Maria, privata della possibilità di vivere secondo i propri sentimenti. Il romanzo appartiene alla fase precedente al Verismo e conserva una forte componente romantica e patetica, ma rivela già l’interesse di Verga per i destini segnati dalle costrizioni sociali.",
     ],
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -195,6 +205,7 @@ export const slides: Slide[] = [
       "Tigre reale (1875): la passione distruttiva per Nata, contessa russa malata di tisi",
       "Eros (1875): Alberto Alberti, consumato dai piaceri, sceglie il suicidio",
     ],
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -206,6 +217,7 @@ export const slides: Slide[] = [
       "Questo principio non significa assenza di lavoro artistico. Al contrario, richiede una costruzione attentissima della lingua, del punto di vista e delle scene. Nelle novelle e nei romanzi veristi Verga applica l’impersonalità attraverso una voce narrativa vicina alla mentalità della comunità rappresentata, anche quando tale mentalità contiene pregiudizi o ingiustizie.",
     ],
     quote: { text: "Il romanzo avrà l'impronta dell'avvenimento reale, e l'opera d'arte sembrerà essersi fatta da sé.", by: "Giovanni Verga" },
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -217,6 +229,7 @@ export const slides: Slide[] = [
       "Alla fine viene mandato a esplorare una galleria pericolosa e scompare senza fare ritorno. La tecnica narrativa è decisiva: il narratore riproduce i pregiudizi della comunità invece di correggerli apertamente. Il lettore capisce così, per contrasto, quanto sia ingiusto il giudizio su Malpelo. Questo effetto è chiamato straniamento ed è legato alla regressione del narratore.",
     ],
     quote: { text: "Malpelo si chiamava così perché aveva i capelli rossi; ed aveva i capelli rossi perché era un ragazzo malizioso e cattivo.", by: "Incipit" },
+    image: malavoglia,
   },
   {
     chapter: "Verga",
@@ -238,6 +251,7 @@ export const slides: Slide[] = [
       "Per elevarsi socialmente sposa Bianca Trao, appartenente a una famiglia nobile ma decaduta, rinunciando alla relazione affettiva con Diodata. Il matrimonio non gli procura la felicità desiderata. Bianca rimane distante, mentre Isabella, che Gesualdo cresce come figlia, lo considera con freddezza e sposa il duca di Leyra, contribuendo a dissipare il patrimonio. Gesualdo sacrifica i sentimenti all’accumulo della roba, convinto che il possesso economico possa garantirgli sicurezza e rispetto.",
       "Colpito da una grave malattia, viene accolto nel palazzo palermitano della figlia, dove muore solo e quasi ignorato dalla servitù. A differenza dei Malavoglia, che cercano soprattutto di conservare il proprio mondo, Gesualdo tenta di salire nella gerarchia sociale. Anche lui, però, è un vinto: conquista la ricchezza ma perde affetti, appartenenza e serenità. Il romanzo mostra che il successo materiale non coincide con una vera realizzazione umana.",
     ],
+    image: malavoglia,
   },
   {
     chapter: "Fine",
