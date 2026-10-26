@@ -293,9 +293,9 @@ export const slides: Slide[] = [
     image: gesualdo,
   },
   {
-    chapter: "Fine",
-    title: "I vinti",
-    subtitle: "Dalla fiducia nel progresso al pessimismo",
+   chapter: "Fine",
+   title: "Zola e Verga",
+   subtitle: "Due visioni differenti del progresso",
     body: [
       "Dalla fiducia positivista nella scienza alla rappresentazione verista delle sconfitte sociali: il percorso dell’Ottocento mostra come la letteratura possa interrogare il progresso, non soltanto celebrarlo.",
       "Zola osserva le ingiustizie con l’ambizione di comprenderne le cause; Verga mette in scena le conseguenze della lotta per la vita su pescatori, contadini e uomini che cercano di cambiare posizione. Nei suoi romanzi, i vinti non sono necessariamente i più deboli: sono coloro che pagano il prezzo delle proprie aspirazioni in una società dominata da interessi e rapporti di forza.",
