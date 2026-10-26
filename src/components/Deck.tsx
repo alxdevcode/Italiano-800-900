@@ -733,7 +733,72 @@ const deckStyles = `
   border-bottom: 1px solid rgba(255, 255, 255, 0.22);
   text-shadow: 0 2px 6px #000;
 }
+
+  /* FINALE: confronto Zola / Verga, senza cambiare le altre slide */
+  .literary-finale { position:absolute; inset:0; overflow:hidden; background:#100b08; }
+  .literary-finale-image { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; filter:none; }
+  .literary-finale-shade { position:absolute; inset:0; background:linear-gradient(90deg,rgba(10,7,5,.94),rgba(10,7,5,.83) 48%,rgba(10,7,5,.62)),linear-gradient(0deg,rgba(10,7,5,.35),transparent 40%); }
+  .literary-finale-layout { position:relative; z-index:2; height:100%; padding:90px 5% 86px; display:flex; flex-direction:column; gap:22px; }
+  .literary-finale-heading { flex:none; }
+  .literary-finale-title { margin:10px 0 0; font:400 clamp(48px,5vw,78px)/1 "Instrument Serif",Georgia,serif; color:#f3e9db; }
+  .literary-finale-subtitle { margin:8px 0 0; font:italic clamp(22px,2.2vw,36px)/1.2 "Instrument Serif",Georgia,serif; color:#dba45f; }
+  .literary-finale-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(25px,4vw,75px); min-height:0; flex:1; }
+  .literary-finale-column { min-height:0; overflow-y:auto; padding:0 16px 18px 0; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.4) transparent; overscroll-behavior:contain; }
+  .literary-finale-column h3 { margin:0 0 14px; font:400 34px "Instrument Serif",Georgia,serif; color:#dba45f; }
+  .literary-finale-column p { margin:0 0 17px; font:400 clamp(13px,1vw,16px)/1.78 "Manrope",sans-serif; color:#eee4d7; }
+  .literary-finale-column p:first-of-type::first-letter { color:#dba45f; }
+  @media (max-width:900px) {
+    .literary-finale-layout { padding:76px 6% 76px; gap:16px; }
+    .literary-finale-title { font-size:clamp(42px,9vw,65px); }
+    .literary-finale-subtitle { font-size:clamp(22px,5vw,30px); }
+    .literary-finale-columns { display:block; overflow-y:auto; min-height:0; padding-right:10px; scrollbar-width:thin; overscroll-behavior:contain; }
+    .literary-finale-column { overflow:visible; padding:0; margin-bottom:28px; }
+    .literary-finale-column h3 { font-size:30px; }
+    .literary-finale-column p { font-size:14px; line-height:1.75; }
+  }
 `;
+
+
+const finaleZola = [
+  "Émile Zola e Giovanni Verga sono due importanti scrittori dell’Ottocento, entrambi influenzati dal Positivismo, una corrente culturale che esaltava la scienza, la ragione e il progresso. Tuttavia, i due autori avevano una visione diversa del progresso e delle sue conseguenze sulla società.",
+  "Émile Zola, principale esponente del Naturalismo francese, aveva una visione più fiduciosa nella scienza e nella possibilità di migliorare la società. Secondo lui, lo scrittore doveva osservare e studiare la realtà come uno scienziato, analizzando le condizioni sociali, economiche ed ereditarie che influenzano il comportamento umano. Attraverso la letteratura, Zola voleva denunciare le ingiustizie e contribuire al cambiamento sociale.",
+  "Un'opera fondamentale di Zola è Germinal, pubblicata nel 1885. Il romanzo racconta le difficili condizioni di vita dei minatori francesi, costretti a lavorare in situazioni pericolose, con salari bassissimi e in condizioni di sfruttamento. Il protagonista, Étienne Lantier, partecipa all'organizzazione di uno sciopero per ottenere condizioni di lavoro migliori. Nonostante la protesta finisca tragicamente, il romanzo lascia intravedere la speranza di un futuro cambiamento. Il titolo Germinal, infatti, richiama l'idea della germinazione, cioè della nascita di qualcosa di nuovo. Per Zola, quindi, la conoscenza e la lotta sociale possono contribuire a costruire una società migliore.",
+];
+
+const finaleVerga = [
+  "Giovanni Verga, principale esponente del Verismo italiano, aveva invece una visione molto più pessimistica. Secondo lui, il progresso è una forza inevitabile che porta benefici alla società nel suo insieme, ma che spesso travolge gli individui più deboli. Questi ultimi vengono chiamati «vinti», perché non riescono ad adattarsi ai cambiamenti economici e sociali.",
+  "Questa concezione emerge soprattutto nel romanzo I Malavoglia, pubblicato nel 1881, che racconta la storia della famiglia Toscano, una famiglia di pescatori di Aci Trezza, in Sicilia. Il capofamiglia, padron 'Ntoni, cerca di migliorare la situazione economica acquistando a credito un carico di lupini da rivendere. Tuttavia, durante il trasporto, la barca chiamata Provvidenza naufraga, causando la morte di Bastianazzo e la perdita del carico. Da questo momento iniziano numerose disgrazie che portano la famiglia alla perdita della casa del nespolo e alla sua disgregazione.",
+  "Attraverso questa vicenda, Verga dimostra che il desiderio di migliorare la propria condizione economica può portare alla rovina, soprattutto quando si appartiene alle classi sociali più povere. Questa idea è collegata all'ideale dell'ostrica, secondo cui gli individui più deboli possono trovare protezione rimanendo legati alla famiglia, alle tradizioni e al proprio ambiente sociale, proprio come un'ostrica rimane attaccata allo scoglio.",
+  "Un altro elemento fondamentale del pensiero di Verga è la fiumana del progresso, descritta nella prefazione ai Malavoglia. Il progresso viene rappresentato come una corrente impetuosa che trascina tutti: osservato da lontano sembra grandioso, ma da vicino mostra le sofferenze e le sconfitte degli individui che vengono travolti.",
+  "La differenza fondamentale tra Zola e Verga riguarda quindi la fiducia nel cambiamento sociale. Zola, pur rappresentando la miseria e lo sfruttamento, crede nella possibilità di migliorare la società attraverso la scienza, la conoscenza e le trasformazioni sociali. Verga, invece, ritiene che la lotta per il miglioramento economico produca inevitabilmente anche dei vinti, senza offrire una vera soluzione alle ingiustizie.",
+  "In conclusione, entrambi raccontano la realtà delle classi più povere, ma mentre Zola utilizza la letteratura anche come strumento di denuncia e di possibile cambiamento, Verga rappresenta con pessimismo la lotta per la sopravvivenza e le conseguenze del progresso sui più deboli.",
+];
+
+function FinaleSlide({ page }: { page: Page }) {
+  return (
+    <section className="literary-finale">
+      {page.slide.image && <img className="literary-finale-image" src={page.slide.image} alt="Pescatori in mare durante una tempesta" />}
+      <div className="literary-finale-shade" />
+      <div className="literary-finale-layout">
+        <div className="literary-finale-heading">
+          <p className="literary-kicker">CONFRONTO FINALE</p>
+          <h1 className="literary-finale-title">Zola e Verga</h1>
+          <p className="literary-finale-subtitle">Due visioni differenti del progresso</p>
+        </div>
+        <div className="literary-finale-columns">
+          <article className="literary-finale-column">
+            <h3>Émile Zola</h3>
+            {finaleZola.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+          </article>
+          <article className="literary-finale-column">
+            <h3>Giovanni Verga</h3>
+            {finaleVerga.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function Cover({ page }: { page: Page }) {
   const { slide } = page;
@@ -891,8 +956,8 @@ export function Deck({ index }: { index: number }) {
   );
 
   useEffect(() => {
-    document.title = `${page.slide.title} — Il Vero`;
-  }, [page.slide.title]);
+    document.title = `${current === total - 1 ? "Zola e Verga" : page.slide.title} — Il Vero`;
+  }, [page.slide.title, current, total]);
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -973,7 +1038,7 @@ export function Deck({ index }: { index: number }) {
           if (
             target instanceof Element &&
             target.closest(
-              ".literary-body, .literary-points, .literary-cover-description"
+              ".literary-body, .literary-points, .literary-cover-description, .literary-finale-columns, .literary-finale-column"
             )
           ) {
             return;
@@ -1015,7 +1080,9 @@ export function Deck({ index }: { index: number }) {
             key={current}
             className="literary-slide"
           >
-            {page.cover ? (
+            {current === total - 1 ? (
+              <FinaleSlide page={page} />
+            ) : page.cover ? (
               <Cover page={page} />
             ) : (
               <ContentSlide page={page} />
@@ -1095,7 +1162,7 @@ export function Deck({ index }: { index: number }) {
                     {String(i + 1).padStart(2, "0")}
                   </span>
 
-                  <span>{item.slide.title}</span>
+                  <span>{i === total - 1 ? "Zola e Verga" : item.slide.title}</span>
                 </button>
               ))}
             </div>
