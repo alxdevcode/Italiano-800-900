@@ -18,7 +18,7 @@ import lettera from "@/assets/lettera.jpg";
 import rosso_malpelo from "@/assets/rosso_malpelo.jpg";
 import malavoglia from "@/assets/malavoglia.jpg";
 import gesualdo from "@/assets/gesualdo.jpg";
-import fine from "@/assets/zola-verga.jpg";
+import zolaVerga from "@/assets/zola-verga.jpg";
 
 
 
@@ -302,6 +302,6 @@ export const slides: Slide[] = [
     ],
     cover: true,
 
-    image: zola-verga,
+    image: zolaVerga,
   },
 ];
